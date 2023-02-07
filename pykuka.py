@@ -14,3 +14,12 @@ DROP = 27
 SAISIE_BARRIERE = 21
 
 s = serial.Serial(port="COM4", baudrate=9600, bytesize=8, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE)
+
+class Pose:
+    def __init__(self, x, y, z, a, b, c):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.a = a
+        self.b = b
+        self.c = c
