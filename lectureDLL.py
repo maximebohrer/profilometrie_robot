@@ -5,7 +5,7 @@ import time
 # Maximum of 200 000 characters
 max_buffer_size = 200000
 
-mydll = ct.cdll.LoadLibrary("C:\Profilo\LJV7_IF.dll")
+mydll = ct.cdll.LoadLibrary("C:/Users/profilometre/Desktop/profilometrie_robot/LJV7_IF.dll")
 
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
         _fields_ = [
