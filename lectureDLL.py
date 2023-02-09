@@ -24,8 +24,25 @@ mydll = ct.cdll.LoadLibrary("C:/Users/profilometre/Desktop/profilometrie_robot/L
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
 	_fields_ = [
 		("abyIpAddress", ct.c_byte * 4),
-		("wPortNo", ct.c_short),
+		("wPortNo", ct.c_ushort),
 		("reserve", ct.c_byte * 2)
+	]
+
+class LJV7IF_HIGH_SPEED_PRE_START_REQ(ct.Structure):
+	_fields_ = [
+		("bySendPos", ct.c_byte),
+		("reserve", ct.c_byte * 3)
+	]
+
+class LJV7IF_PROFILE_INFO(ct.Structure):
+	_fields_ = [
+		("byProfileCnt", ct.c_byte),
+		("byEnvelope", ct.c_byte),
+		("reserve", ct.c_byte * 2),
+		("wProfDataCnt", ct.c_ushort),
+		("reserve2", ct.c_byte * 2),
+		("IXStart", ct.c_long),
+		("IXPitch", ct.c_long)
 	]
 
 def Initialize():
@@ -41,14 +58,30 @@ def GetVersion():
 def EthernetOpen(deviceID, ipAddress, port):
 	Kconnection = LJV7IF_ETHERNET_CONFIG()
 	Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
-	Kconnection.wPortNo = 24691
+	Kconnection.wPortNo = port
 	res = mydll.LJV7IF_EthernetOpen(deviceID, ct.byref(Kconnection))
-	print(f"Connexion à l'adresse IP : {Kconnection.abyIpAddress[0]}.{Kconnection.abyIpAddress[1]}.{Kconnection.abyIpAddress[2]}.{Kconnection.abyIpAddress[3]}, sur le port {Kconnection.wPortNo} : {hex(res)}")
+	print(f"Connexion à l'adresse IP : {ipAddress}, sur le port {Kconnection.wPortNo} : {hex(res)}")
 	return res
 
-def GetProfilAdvance(deviceID, profInfo, profData, dataSize, measureData):
-	pass
+def HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, port):
+	data = 0
+	def mafonctioncallback(pBuffer, dwSize, dwCount, dwNotify, dwUser):
+		print(pBuffer)
+	prototype = ct.CFUNCTYPE(ct.void, ct.pointer(ct.c_byte), ct.c_ulong, ct.c_ulong, ct.c_ulong, ct.c_ulong)
+		
+	Kconnection = LJV7IF_ETHERNET_CONFIG()
+	Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
+	Kconnection.wPortNo = port
+	res = mydll.LJV7IF_HighSpeedDataEthernetCommunicationInitialize(deviceID, ct.byref(Kconnection), prototype(mafonctioncallback))
+	print(f"Initialisation connexion rapide à l'adresse IP : {ipAddress}, sur le port {Kconnection.wPortNo} : {hex(res)}")
+	return (res, data)
 
+def PreStartHighSpeedDataCommunication(deviceID, bySendPos, profInfo):
+	req = LJV7IF_HIGH_SPEED_PRE_START_REQ()
+	req.bySendPos = bySendPos
+	res = mydll.LJV7IF_PreStartHighSpeedDataCommunication(deviceID, req, profInfo)
+	print(f"Pre start high speed data communication : {hex(res)}")
+	return res
 
 def StartMeasure(deviceID):
 	res = mydll.LJV7IF_StartMeasure(deviceID)
@@ -73,13 +106,28 @@ def Finalize():
 #############################################################################################
 # Script principal
 deviceID = 0
-	
+ipAddress = "10.2.34.1"
+port = 24691
+portHighSpeed = 24692
+
 Initialize()
 GetVersion()
-EthernetOpen(deviceID, "10.2.34.1", 24691)
-StartMeasure(deviceID)
+EthernetOpen(deviceID, ipAddress, port)
+HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, portHighSpeed)
+
+bySendPos = 0
+profInfo = 0
+PreStartHighSpeedDataCommunication(deviceID, bySendPos, profInfo)
+
+
+StartHighSpeedDataCommunication
 time.sleep(5)
-StopMeasure(deviceID)
+Callback function
+
+StopHighSpeedDataCommunication
+HighSpeedDataCommunicationFinalize
+CommClose
+
 
 
 
