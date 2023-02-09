@@ -19,7 +19,7 @@ LJV7IF_RC_ERR_BUFFER_SHORT = 0x100C         # The buffer size passed as an argum
 # Maximum of 200 000 characters
 max_buffer_size = 200000
 
-mydll = ct.cdll.LoadLibrary("C:/Users/Maxime/Desktop/profilometrie_robot/LJV7_IF.dll")
+mydll = ct.cdll.LoadLibrary("C:/Users/pdr/Desktop/profilometrie_robot/LJV7_IF.dll")
 
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
         _fields_ = [
@@ -42,7 +42,7 @@ def EthernetOpen(deviceId, ipAddress, port):
     res = mydll.LJV7IF_EthernetOpen(deviceId, ct.byref(Kconnection))
     return res
 
-a = EthernetOpen(0, "10.2.34.2", 24691)
+a = EthernetOpen(0, "10.2.34.1", 24691)
 print(hex(a))
 
 # autre moyen
