@@ -2,7 +2,7 @@ import ctypes as ct
 import time
 
 # codes d'erreur
-LJV7IF_RC_OK = 0x0000                       # Normal termination
+LJV7IF_RC_OK = 0x0000	                   # Normal termination
 LJV7IF_RC_ERR_OPEN = 0x1000                 # Failed to open the communication path
 LJV7IF_RC_ERR_NOT_OPEN = 0x1001             # The communication path was not established.
 LJV7IF_RC_ERR_SEND = 0x1002                 # Failed to send the command.
@@ -19,41 +19,50 @@ LJV7IF_RC_ERR_BUFFER_SHORT = 0x100C         # The buffer size passed as an argum
 # Maximum of 200 000 characters
 max_buffer_size = 200000
 
-mydll = ct.cdll.LoadLibrary("C:/Users/pdr/Desktop/profilometrie_robot/LJV7_IF.dll")
+mydll = ct.cdll.LoadLibrary("C:/Users/profilometre/Desktop/profilometrie_robot/LJV7_IF.dll")
 
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
-        _fields_ = [
-            ("abyIpAddress", ct.c_byte * 4),
-            ("wPortNo", ct.c_short),
-            ("reserve", ct.c_byte * 2)
-        ]
+	_fields_ = [
+		("abyIpAddress", ct.c_byte * 4),
+		("wPortNo", ct.c_short),
+		("reserve", ct.c_byte * 2)
+	]
 
-a = mydll.LJV7IF_Initialize()
-print(hex(a))
-a = mydll.LJV7IF_GetVersion()
-print(hex(a))
+def Initialize():
+	res = mydll.LJV7IF_Initialize()
+	print(f"Initialisation du DLL : {hex(res)}")
+	return res
 
+def GetVersion():
+	res = mydll.LJV7IF_GetVersion()
+	print(f"Version du DLL : {hex(res)}")
+	return res
 
 def EthernetOpen(deviceId, ipAddress, port):
-    Kconnection = LJV7IF_ETHERNET_CONFIG()
-    Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
-    Kconnection.wPortNo = 24691
-    print(f"Connexion à l'adresse IP : {Kconnection.abyIpAddress[0]}.{Kconnection.abyIpAddress[1]}.{Kconnection.abyIpAddress[2]}.{Kconnection.abyIpAddress[3]}, sur le port {Kconnection.wPortNo}")
-    res = mydll.LJV7IF_EthernetOpen(deviceId, ct.byref(Kconnection))
-    return res
+	Kconnection = LJV7IF_ETHERNET_CONFIG()
+	Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
+	Kconnection.wPortNo = 24691
+	print(f"Connexion à l'adresse IP : {Kconnection.abyIpAddress[0]}.{Kconnection.abyIpAddress[1]}.{Kconnection.abyIpAddress[2]}.{Kconnection.abyIpAddress[3]}, sur le port {Kconnection.wPortNo}")
+	res = mydll.LJV7IF_EthernetOpen(deviceId, ct.byref(Kconnection))
+	return res
 
-a = EthernetOpen(0, "10.2.34.1", 24691)
-print(hex(a))
+def StartMeasure(deviceId):
+	return 0
 
-# autre moyen
-# c_Initialize = ct.CFUNCTYPE(ct.c_void_p)(("LJV7IF_Initialize", mydll))
-# a = c_Initialize()
+def Finalize():
+	res = mydll.LJV7IF_Finalize()
+	print(f"Finalisation du DLL : {hex(res)}")
+
+#############################################################################################
+# Script principal
+Initialize()
+GetVersion()
+EthernetOpen(0, "10.2.34.1", 24691)
+StartMeasure(0)
 
 
 
 
 
-
-
-
-
+input("Fin de la sim ? [ENTER]")
+Finalize()
