@@ -38,31 +38,51 @@ def GetVersion():
 	print(f"Version du DLL : {hex(res)}")
 	return res
 
-def EthernetOpen(deviceId, ipAddress, port):
+def EthernetOpen(deviceID, ipAddress, port):
 	Kconnection = LJV7IF_ETHERNET_CONFIG()
 	Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
 	Kconnection.wPortNo = 24691
-	print(f"Connexion à l'adresse IP : {Kconnection.abyIpAddress[0]}.{Kconnection.abyIpAddress[1]}.{Kconnection.abyIpAddress[2]}.{Kconnection.abyIpAddress[3]}, sur le port {Kconnection.wPortNo}")
-	res = mydll.LJV7IF_EthernetOpen(deviceId, ct.byref(Kconnection))
+	res = mydll.LJV7IF_EthernetOpen(deviceID, ct.byref(Kconnection))
+	print(f"Connexion à l'adresse IP : {Kconnection.abyIpAddress[0]}.{Kconnection.abyIpAddress[1]}.{Kconnection.abyIpAddress[2]}.{Kconnection.abyIpAddress[3]}, sur le port {Kconnection.wPortNo} : {hex(res)}")
 	return res
 
-def StartMeasure(deviceId):
-	return 0
+def GetProfilAdvance(deviceID, profInfo, profData, dataSize, measureData):
+	pass
+
+
+def StartMeasure(deviceID):
+	res = mydll.LJV7IF_StartMeasure(deviceID)
+	print(f"Début de la mesure : {hex(res)}")
+	return res
+
+def StopMeasure(deviceID):
+	res = mydll.LJV7IF_StopMeasure(deviceID)
+	print(f"Fin de la mesure : {hex(res)}")
+	return res
+
+def EthernetClose(deviceID):
+	res = mydll.LJV7IF_CommClose(deviceID)
+	print(f"Fin de la connexion avec device {deviceID} : {hex(res)}")
+	return res
 
 def Finalize():
 	res = mydll.LJV7IF_Finalize()
 	print(f"Finalisation du DLL : {hex(res)}")
+	return res
 
 #############################################################################################
 # Script principal
+deviceID = 0
+	
 Initialize()
 GetVersion()
-EthernetOpen(0, "10.2.34.1", 24691)
-StartMeasure(0)
-
-
+EthernetOpen(deviceID, "10.2.34.1", 24691)
+StartMeasure(deviceID)
+time.sleep(5)
+StopMeasure(deviceID)
 
 
 
 input("Fin de la sim ? [ENTER]")
+EthernetClose(deviceID)
 Finalize()
