@@ -25,6 +25,16 @@ class Pose:
         self.b = b
         self.c = c
     
+    @classmethod
+    def from_string(cls, string):
+        """Build a pose object from a string."""
+        s = string.split(' ')
+        return cls(float(s[0]), float(s[1]), float(s[2]), float(s[3]), float(s[4]), float(s[5]))
+    
+    def to_string(self):
+        """Convert the pose object into a string."""
+        return f"{format(self.x, '010.6f')} {format(self.y, '010.6f')} {format(self.z, '010.6f')} {format(self.a, '010.6f')} {format(self.b, '010.6f')} {format(self.c, '010.6f')}"
+    
     def __repr__(self):
         return f"X = {self.x}; Y = {self.y}; Z = {self.z}; A = {self.a}; B = {self.b}; C = {self.c}"
 
@@ -35,54 +45,46 @@ def calculate_bcc(input, init_value):
         res ^= i
     return res
 
-def wait_for_kuka_3964R_data_buffer():
-    """Read a string from the robot using the 3964R protocol."""
-    len = 0
+def read_kuka_3964R_data_buffer():
+    """Read a byte buffer from the robot using the 3964R protocol. Block until the buffer is received."""
     s.read_until(bytes([STX]))
     s.write(bytes([DLE]))
-    res = s.read_until(bytes([DLE, ETX]))[:-2]
+    payload = s.read_until(bytes([DLE, ETX]))
     bcc = s.read()[0]
     s.write(bytes([DLE]))
-    return res.decode('uft-8')
+    if bcc != calculate_bcc(payload):
+        raise Exception("Transmission error")
+    return payload[:-2] # strip DLE and ETX
 
-def get_pose_from_buffer(buffer):
-    """Convert a string into a pose object."""
-    s = buffer.split(' ')
-    return Pose(float(s[0]), float(s[1]), float(s[2]), float(s[3]), float(s[4]), float(s[5]))
+def read_kuka_3964R_string():
+    """Read a string from the robot using the 3964R protocol. Block until the string is received."""
+    return read_kuka_3964R_data_buffer().decode('utf-8')
 
-def build_buffer_from_pose(pose):
-    """Convert a pose object into a string."""
-    return f"{format(pose.x, '010.6f')} {format(pose.y, '010.6f')} {format(pose.z, '010.6f')} {format(pose.a, '010.6f')} {format(pose.b, '010.6f')} {format(pose.c, '010.6f')}"
+def read_kuka_3964R_pose():
+    """Read a pose from the robot using the 3964R protocol. Block until the pose is received."""
+    return Pose.from_string(read_kuka_3964R_data_buffer().decode('utf-8'))
 
-def send_kuka_3964R_data_buffer(buffer):
-    """Send a string to the robot using the 3964R protocol."""
+def send_kuka_3964R_data_buffer(bytes):
+    """Send a byte buffer to the robot using the 3964R protocol."""
     s.send(bytes([STX])) # send STX until we get DLE
     while(s.read()[0] != DLE):
         s.write(bytes([STX]))
-    payload = bytes(buffer, 'utf-8') + bytes([DLE, ETX])
+    payload = bytes + bytes([DLE, ETX])
     bbc = calculate_bcc(payload, 0)
     s.send(payload + bytes([bbc]))
     s.read_until(bytes([DLE]))
 
+def send_kuka_3964R_string(string):
+    """Send a string to the robot using the 3964R protocol."""
+    send_kuka_3964R_data_buffer(bytes(string, 'utf-8'))
+
 def send_kuka_3964R_single_char(byte):
     """Send a single character to the robot using the 3964R protocol."""
-    s.send(bytes([STX])) # send STX until we get DLE
-    while(s.read()[0] != DLE):
-        s.write(bytes([STX]))
-    payload = bytes([byte, DLE, ETX])
-    bbc = calculate_bcc(payload, 0)
-    s.write(payload + bytes([bbc]))
-    s.read_until(bytes([DLE]))
+    send_kuka_3964R_data_buffer(bytes([byte]))
 
 def send_kuka_3964R_single_double(double):
     """Send a double value to the robot using the 3964R protocol."""
-    s.send(bytes([STX])) # send STX until we get DLE
-    while(s.read()[0] != DLE):
-        s.write(bytes([STX]))
-    payload = bytes(format(double, '010.6f'), 'utf-8') + bytes([DLE, ETX])
-    bbc = calculate_bcc(payload, 0)
-    s.write(payload + bytes([bbc]))
-    s.read_until(bytes([DLE]))
+    send_kuka_3964R_data_buffer(bytes(format(double, '010.6f'), 'utf-8'))
 
 def kuka_go_to_pose(pose):
     """Ask the robot to reach a specific pose, return the pose that the robot actually reached"""
@@ -93,7 +95,14 @@ def kuka_go_to_pose(pose):
     send_kuka_3964R_single_double(pose.a)
     send_kuka_3964R_single_double(pose.b)
     send_kuka_3964R_single_double(pose.c)
-    recv = wait_for_kuka_3964R_data_buffer()
-    while recv[0] != chr(DONE):
-        recv = wait_for_kuka_3964R_data_buffer()
-    return get_pose_from_buffer(wait_for_kuka_3964R_data_buffer())
+    recv = read_kuka_3964R_data_buffer()
+    while recv[0] != DONE:
+        recv = read_kuka_3964R_data_buffer()
+    return read_kuka_3964R_pose()
+
+if __name__ == '__main__':
+    send_kuka_3964R_single_char(POS)    # request position
+    p = read_kuka_3964R_pose()          # read position
+    for i in range(10):
+        p.y += 2
+        kuka_go_to_pose(p)
