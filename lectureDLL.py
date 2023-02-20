@@ -175,7 +175,6 @@ def WriteProfileDataToTextFile(dbValues, iSize, sFileName):
 	
 	return 0
 
-
 def PreStartHighSpeedDataCommunication(deviceID, bySendPos):
 	req = LJV7IF_HIGH_SPEED_PRE_START_REQ()
 	req.bySendPos = bySendPos
@@ -229,7 +228,6 @@ ipAddress = "10.2.34.1"
 port = 24691
 portHighSpeed = 24692
 
-
 Initialize()
 GetVersion()
 EthernetOpen(deviceID, ipAddress, port)
@@ -245,10 +243,18 @@ StopHighSpeedDataCommunication(deviceID)
 HighSpeedDataCommunicationFinalize(deviceID)
 
 
-input("Fin de la sim ? [ENTER]")
+#input("Fin de la sim ? [ENTER]")
 CommClose(deviceID)
 Finalize()
 
+
+
+
+
+
+
+
+# Script Jacques Boonaert
 
 dbTravelLength = 0
 dbYStep = 0
@@ -279,16 +285,15 @@ bKeyenceConnected = False                                         # ->indicates 
 iProfileLength = iMAX_DATA
 dbData = [0.0 for k in range(iProfileLength)]
 
+'''
 # initialize the DLL
 Initialize()
 GetVersion()
 res = EthernetOpen(deviceID, ipAddress, port)
 if res == 0 : bKeyenceConnected = True
 
-
-
 # second step init  
-n = (int)(dbTravelLength / dbYStep)
+n = int(dbTravelLength / dbYStep)
 
 profileData = [0 for k in range((iMAX_DATA * ct.sizeof(ct.c_int32) + iHEADER_SIZE + iFOOTER_SIZE) / ct.sizeof(ct.c_int))]
 ProReq.byErase = 0
@@ -324,3 +329,4 @@ for k in range(3):
 					dbXTemp = (j - 1) * dbXResolution + dbXStart
 					sOut3DData.write(str(dbXTemp) + "\t" + str(dbData[j]))
 				sOut3DData.close()
+'''
