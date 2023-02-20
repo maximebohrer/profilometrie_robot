@@ -1,4 +1,5 @@
 import ctypes as ct
+import os
 import time
 import copy
 
@@ -17,10 +18,13 @@ LJV7IF_RC_ERR_HISPEED_OPEN_YET = 0x100A		# High-speed communication was initiali
 LJV7IF_RC_ERR_HISPEED_RECV_YET = 0x100B		# Error already occurred during high-speed communication (for high-speed communication)
 LJV7IF_RC_ERR_BUFFER_SHORT = 0x100C			# The buffer size passed as an argument is insufficient. 
 
+WORD = ct.c_ushort # 2 bytes | 16 bits
+DWORD = ct.c_ulong # 8 bytes | 32 bits
+
 # Maximum of 200 000 characters
 max_buffer_size = 200000
 
-mydll = ct.cdll.LoadLibrary("C:/Users/profilometre/Desktop/profilometrie_robot/LJV7_IF.dll")
+mydll = ct.cdll.LoadLibrary(os.path.join(os.getcwd(), "LJV7_IF.dll")) #"C:/Users/profilometre/Desktop/profilometrie_robot/LJV7_IF.dll")
 
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
 	_fields_ = [
@@ -131,15 +135,20 @@ def GetProfile(deviceID, bySendPos, dwDataSize):
 	print("Récupération profile")
 	return res
 
+def GetMeasurementValue(deviceID):
+	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
+	res = mydll.LJV7IF_GetMeasurementValue(deviceID, ct.byref(pMeasureData))
+	return 0
+
 def GetProfileAdvance(deviceID, dwDataSizeIn):
 	pProfileInfo = LJV7IF_PROFILE_INFO()
-	pdwProfileData = ct.c_ulong * dwDataSizeIn
-	dwDataSize = dwDataSizeIn ###
-	pMeasureData = LJV7IF_MEASURE_DATA()
+	dwDataSize = 800 * ct.sizeof(ct.c_ulong) + 24 + 4
+	pdwProfileData = (ct.c_ulong * 810)()
+	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
 
-	res = mydll.LJV7IF_GetProfileAdvance(deviceID, ct.POINTER(pProfileInfo), ct.POINTER(pdwProfileData), dwDataSize, ct.POINTER(pMeasureData))
-	print("Getting profile advance")
-	return res
+	res = mydll.LJV7IF_GetProfileAdvance(deviceID, ct.byref(pProfileInfo), pdwProfileData, dwDataSize, ct.byref(pMeasureData)) #ct.cast(pMeasureData, ct.POINTER(LJV7IF_MEASURE_DATA))
+	print(f"Getting profile advance : {hex(res)}")
+	return [pdwProfileData[i] for i in range(810)]
 
 def GetBatchProfileAdvance(deviceID, dwDataSize):
 	pReq = LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ()
@@ -231,21 +240,26 @@ portHighSpeed = 24692
 Initialize()
 GetVersion()
 EthernetOpen(deviceID, ipAddress, port)
-HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, portHighSpeed) # Pas finie, callback function in there
+#a = GetProfileAdvance(deviceID, 800)
+GetMeasurementValue(deviceID)
+a = GetProfileAdvance(deviceID, 0)
+print(a)
 
-bySendPos = 0
+# #HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, portHighSpeed) # Pas finie, callback function in there
 
-
-pProfileInfo = PreStartHighSpeedDataCommunication(deviceID, bySendPos)
-StartHighSpeedDataCommunication(deviceID)
-
-StopHighSpeedDataCommunication(deviceID)
-HighSpeedDataCommunicationFinalize(deviceID)
+# #bySendPos = 0
 
 
-#input("Fin de la sim ? [ENTER]")
-CommClose(deviceID)
-Finalize()
+# #pProfileInfo = PreStartHighSpeedDataCommunication(deviceID, bySendPos)
+# StartHighSpeedDataCommunication(deviceID)
+
+# StopHighSpeedDataCommunication(deviceID)
+# HighSpeedDataCommunicationFinalize(deviceID)
+
+
+# #input("Fin de la sim ? [ENTER]")
+# CommClose(deviceID)
+# Finalize()
 
 
 
@@ -254,36 +268,36 @@ Finalize()
 
 
 
-# Script Jacques Boonaert
+# # Script Jacques Boonaert
 
-dbTravelLength = 0
-dbYStep = 0
+# dbTravelLength = 0
+# dbYStep = 0
 
-iMAX_MEASURE_DATA = 16                        # -> number of output (digital)
-iMAX_DATA = 800                               # -> base length of a profile
-dbSENSOR_RESOLUTION_IN_mm = 1e-5           # -> sensor resolution in mm along Z
-ProInf = LJV7IF_PROFILE_INFO()         # -> information about the curent profile
-dbSENSOR_RESOLUTION_IN_mm_X = 1e-5         # -> sensor resolution in mm along X
-dbXResolution = dbSENSOR_RESOLUTION_IN_mm_X   # ->default resolution along X
-fProfileFileName = "PROFILE_DATA.TXT"      # -> name of the profile file name
-f3DProfileFileName = "PROFILE_DATA_3D.TXT" # -> name of the 3D profile file (RAW)
-iHEADER_SIZE = 24                             # -> data header structure's length ( 6 x sizeof(DWORD))
-iFOOTER_SIZE = 4
+# iMAX_MEASURE_DATA = 16                        # -> number of output (digital)
+# iMAX_DATA = 800                               # -> base length of a profile
+# dbSENSOR_RESOLUTION_IN_mm = 1e-5           # -> sensor resolution in mm along Z
+# ProInf = LJV7IF_PROFILE_INFO()         # -> information about the curent profile
+# dbSENSOR_RESOLUTION_IN_mm_X = 1e-5         # -> sensor resolution in mm along X
+# dbXResolution = dbSENSOR_RESOLUTION_IN_mm_X   # ->default resolution along X
+# fProfileFileName = "PROFILE_DATA.TXT"      # -> name of the profile file name
+# f3DProfileFileName = "PROFILE_DATA_3D.TXT" # -> name of the 3D profile file (RAW)
+# iHEADER_SIZE = 24                             # -> data header structure's length ( 6 x sizeof(DWORD))
+# iFOOTER_SIZE = 4
 
 
  
-# KEYENCE related variables
-iProfileLength = 0                                                     # ->number of points for a single profile
-ProReq = LJV7IF_GET_PROFILE_REQ()
-ProHead = LJV7IF_PROFILE_HEADER()
-meaData = [LJV7IF_MEASURE_DATA() for k in range(iMAX_MEASURE_DATA)]
+# # KEYENCE related variables
+# iProfileLength = 0                                                     # ->number of points for a single profile
+# ProReq = LJV7IF_GET_PROFILE_REQ()
+# ProHead = LJV7IF_PROFILE_HEADER()
+# meaData = [LJV7IF_MEASURE_DATA() for k in range(iMAX_MEASURE_DATA)]
 
-bKeyenceConnected = False                                         # ->indicates if we are connected to the Keyence controller
+# bKeyenceConnected = False                                         # ->indicates if we are connected to the Keyence controller
 
 
-# initialize the communication with the KEYENCE controller : 
-iProfileLength = iMAX_DATA
-dbData = [0.0 for k in range(iProfileLength)]
+# # initialize the communication with the KEYENCE controller : 
+# iProfileLength = iMAX_DATA
+# dbData = [0.0 for k in range(iProfileLength)]
 
 '''
 # initialize the DLL
