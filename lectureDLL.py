@@ -21,8 +21,19 @@ LJV7IF_RC_ERR_BUFFER_SHORT = 0x100C			# The buffer size passed as an argument is
 WORD = ct.c_ushort # 2 bytes | 16 bits
 DWORD = ct.c_ulong # 8 bytes | 32 bits
 
-# Maximum of 200 000 characters
-max_buffer_size = 200000
+dbTravelLength = 0
+dbYStep = 0
+
+iMAX_MEASURE_DATA = 16                        # -> number of output (digital)
+iMAX_DATA = 800                               # -> base length of a profile
+dbSENSOR_RESOLUTION_IN_mm = 1e-5           # -> sensor resolution in mm along Z
+ProInf = LJV7IF_PROFILE_INFO()         # -> information about the curent profile
+dbSENSOR_RESOLUTION_IN_mm_X = 1e-5         # -> sensor resolution in mm along X
+dbXResolution = dbSENSOR_RESOLUTION_IN_mm_X   # ->default resolution along X
+fProfileFileName = "PROFILE_DATA.TXT"      # -> name of the profile file name
+f3DProfileFileName = "PROFILE_DATA_3D.TXT" # -> name of the 3D profile file (RAW)
+iHEADER_SIZE = 24                             # -> data header structure's length ( 6 x sizeof(DWORD))
+iFOOTER_SIZE = 4
 
 mydll = ct.cdll.LoadLibrary(os.path.join(os.getcwd(), "LJV7_IF.dll")) #"C:/Users/profilometre/Desktop/profilometrie_robot/LJV7_IF.dll")
 
@@ -114,6 +125,47 @@ def EthernetOpen(deviceID, ipAddress, port):
 	print(f"Connexion à l'adresse IP : {ipAddress}, sur le port {Kconnection.wPortNo} : {hex(res)}")
 	return res
 
+def GetMeasurementValue(deviceID):
+	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
+	res = mydll.LJV7IF_GetMeasurementValue(deviceID, ct.byref(pMeasureData))
+	return 0
+
+def GetProfileAdvance(deviceID):
+	resolution = 1e-5
+	pProfileInfo = LJV7IF_PROFILE_INFO()
+	numberOfInt = 800 + 6 + 1
+	dwDataSize = numberOfInt * ct.sizeof(ct.c_ulong)
+	pdwProfileData = (ct.c_ulong * numberOfInt)()
+	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
+
+	res = mydll.LJV7IF_GetProfileAdvance(deviceID, ct.byref(pProfileInfo), pdwProfileData, dwDataSize, ct.byref(pMeasureData)) #ct.cast(pMeasureData, ct.POINTER(LJV7IF_MEASURE_DATA))
+	print(f"Getting profile advance : {hex(res)}")
+	return [(pdwProfileData[i] * resolution) for i in range(6, numberOfInt - 1)]
+	#return [(pdwProfileData[i] * resolution) if (pdwProfileData[i] * resolution) < 100 else 0 for i in range(6, numberOfInt - 1)]
+	#return [ct.cast(pdwProfileData, ct.POINTER(ct.c_double))[i] * resolution for i in range(6, numberOfInt - 1)]
+
+def GetBatchProfileAdvance(deviceID, dwDataSize):
+	pReq = LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ()
+	pRsp = LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP()
+	pProfileInfo = LJV7IF_PROFILE_INFO()
+	pdwBatchData = ct.c_ulong()
+	pBatchMeasureData = LJV7IF_MEASURE_DATA()
+	pMeasureData = LJV7IF_MEASURE_DATA()
+
+	res = mydll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.POINTER(pReq), ct.POINTER(pRsp), ct.POINTER(pProfileInfo), ct.POINTER(pdwBatchData), dwDataSize, ct.POINTER(pBatchMeasureData), ct.POINTER(pMeasureData))
+	return res
+
+def CommClose(deviceID):
+	res = mydll.LJV7IF_CommClose(deviceID)
+	print(f"Fin de la connexion avec device {deviceID} : {hex(res)}")
+	return res
+
+def Finalize():
+	res = mydll.LJV7IF_Finalize()
+	print(f"Finalisation du DLL : {hex(res)}")
+	return res
+
+'''
 def HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, port):
 	data = 0
 	def mafonctioncallback(pBuffer, dwSize, dwCount, dwNotify, dwUser):
@@ -133,32 +185,6 @@ def GetProfile(deviceID, bySendPos, dwDataSize):
 	req.bySendPos = bySendPos
 	res = mydll.LJV7IF_GetProfile(deviceID, req, dwDataSize)
 	print("Récupération profile")
-	return res
-
-def GetMeasurementValue(deviceID):
-	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
-	res = mydll.LJV7IF_GetMeasurementValue(deviceID, ct.byref(pMeasureData))
-	return 0
-
-def GetProfileAdvance(deviceID, dwDataSizeIn):
-	pProfileInfo = LJV7IF_PROFILE_INFO()
-	dwDataSize = 800 * ct.sizeof(ct.c_ulong) + 24 + 4
-	pdwProfileData = (ct.c_ulong * 810)()
-	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
-
-	res = mydll.LJV7IF_GetProfileAdvance(deviceID, ct.byref(pProfileInfo), pdwProfileData, dwDataSize, ct.byref(pMeasureData)) #ct.cast(pMeasureData, ct.POINTER(LJV7IF_MEASURE_DATA))
-	print(f"Getting profile advance : {hex(res)}")
-	return [pdwProfileData[i] for i in range(810)]
-
-def GetBatchProfileAdvance(deviceID, dwDataSize):
-	pReq = LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ()
-	pRsp = LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP()
-	pProfileInfo = LJV7IF_PROFILE_INFO()
-	pdwBatchData = ct.c_ulong()
-	pBatchMeasureData = LJV7IF_MEASURE_DATA()
-	pMeasureData = LJV7IF_MEASURE_DATA()
-
-	res = mydll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.POINTER(pReq), ct.POINTER(pRsp), ct.POINTER(pProfileInfo), ct.POINTER(pdwBatchData), dwDataSize, ct.POINTER(pBatchMeasureData), ct.POINTER(pMeasureData))
 	return res
 
 def GetProfileValues(profileData, dbData):
@@ -182,7 +208,7 @@ def WriteProfileDataToTextFile(dbValues, iSize, sFileName):
 		f.write(str(dbX) + "\t" + str(dbTemp))
 	f.close()
 	
-	return 0
+	return 0		
 
 def PreStartHighSpeedDataCommunication(deviceID, bySendPos):
 	req = LJV7IF_HIGH_SPEED_PRE_START_REQ()
@@ -219,17 +245,7 @@ def StopMeasure(deviceID):
 	res = mydll.LJV7IF_StopMeasure(deviceID)
 	print(f"Fin de la mesure : {hex(res)}")
 	return res
-
-def CommClose(deviceID):
-	res = mydll.LJV7IF_CommClose(deviceID)
-	print(f"Fin de la connexion avec device {deviceID} : {hex(res)}")
-	return res
-
-def Finalize():
-	res = mydll.LJV7IF_Finalize()
-	print(f"Finalisation du DLL : {hex(res)}")
-	return res
-
+'''
 #############################################################################################
 # Script principal
 deviceID = 0
@@ -242,105 +258,10 @@ GetVersion()
 EthernetOpen(deviceID, ipAddress, port)
 #a = GetProfileAdvance(deviceID, 800)
 GetMeasurementValue(deviceID)
-a = GetProfileAdvance(deviceID, 0)
+a = GetProfileAdvance(deviceID)
 print(a)
+print("\n".join(map(lambda x: str(x), a)))
 
-# #HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, portHighSpeed) # Pas finie, callback function in there
-
-# #bySendPos = 0
-
-
-# #pProfileInfo = PreStartHighSpeedDataCommunication(deviceID, bySendPos)
-# StartHighSpeedDataCommunication(deviceID)
-
-# StopHighSpeedDataCommunication(deviceID)
-# HighSpeedDataCommunicationFinalize(deviceID)
-
-
-# #input("Fin de la sim ? [ENTER]")
-# CommClose(deviceID)
-# Finalize()
-
-
-
-
-
-
-
-
-# # Script Jacques Boonaert
-
-# dbTravelLength = 0
-# dbYStep = 0
-
-# iMAX_MEASURE_DATA = 16                        # -> number of output (digital)
-# iMAX_DATA = 800                               # -> base length of a profile
-# dbSENSOR_RESOLUTION_IN_mm = 1e-5           # -> sensor resolution in mm along Z
-# ProInf = LJV7IF_PROFILE_INFO()         # -> information about the curent profile
-# dbSENSOR_RESOLUTION_IN_mm_X = 1e-5         # -> sensor resolution in mm along X
-# dbXResolution = dbSENSOR_RESOLUTION_IN_mm_X   # ->default resolution along X
-# fProfileFileName = "PROFILE_DATA.TXT"      # -> name of the profile file name
-# f3DProfileFileName = "PROFILE_DATA_3D.TXT" # -> name of the 3D profile file (RAW)
-# iHEADER_SIZE = 24                             # -> data header structure's length ( 6 x sizeof(DWORD))
-# iFOOTER_SIZE = 4
-
-
- 
-# # KEYENCE related variables
-# iProfileLength = 0                                                     # ->number of points for a single profile
-# ProReq = LJV7IF_GET_PROFILE_REQ()
-# ProHead = LJV7IF_PROFILE_HEADER()
-# meaData = [LJV7IF_MEASURE_DATA() for k in range(iMAX_MEASURE_DATA)]
-
-# bKeyenceConnected = False                                         # ->indicates if we are connected to the Keyence controller
-
-
-# # initialize the communication with the KEYENCE controller : 
-# iProfileLength = iMAX_DATA
-# dbData = [0.0 for k in range(iProfileLength)]
-
-'''
-# initialize the DLL
-Initialize()
-GetVersion()
-res = EthernetOpen(deviceID, ipAddress, port)
-if res == 0 : bKeyenceConnected = True
-
-# second step init  
-n = int(dbTravelLength / dbYStep)
-
-profileData = [0 for k in range((iMAX_DATA * ct.sizeof(ct.c_int32) + iHEADER_SIZE + iFOOTER_SIZE) / ct.sizeof(ct.c_int))]
-ProReq.byErase = 0
-ProReq.byPosMode = 0
-ProReq.dwGetProfNo = 0
-ProReq.byGetProfCnt = 1; # 1 profile to get ! 
-ProHead.reserve2 = [0, 0, 0]
-
-for k in range(3):
-	for i in range(n):
-		# if we are connected to the Keyence controller, acquire a profile at this location : 
-		if (bKeyenceConnected):
-			# try to read a profile
-			
-			# try to get the data..
-			# if ((rc = NativeMethods.LJV7IF_GetProfileAdvance(DeviceID, ref ProInf, pin.Pointer, iMAX_DATA * sizeof(Int32) + iHEADER_SIZE + iFOOTER_SIZE, meaData)) == (int)(Rc.Ok))
-			dwDataSizeIn = 0
-			if GetProfileAdvance(deviceID, dwDataSizeIn) == 0:
-				# convert the data
-				iProfileLength = GetProfileValues(profileData, dbData)
-				
-				# store the profile measurements into a text file
-				WriteProfileDataToTextFile(dbData, iProfileLength, fProfileFileName)
-				
-				# Appends the data to the 3D data file
-				sOut3DData = open(f3DProfileFileName, "w")
-
-				for j in range (iProfileLength):
-					dbXTemp = 0
-					dbXStep = 0
-					dbXStep = dbXResolution * ProInf.lXPitch
-					dbXStart = ProInf.lXStart * dbXResolution
-					dbXTemp = (j - 1) * dbXResolution + dbXStart
-					sOut3DData.write(str(dbXTemp) + "\t" + str(dbData[j]))
-				sOut3DData.close()
-'''
+input("Fin de la sim ? [ENTER]")
+CommClose(deviceID)
+Finalize()
