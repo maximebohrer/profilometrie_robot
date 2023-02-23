@@ -2,12 +2,7 @@ import time
 from pykuka import *
 from pykeyence import *
 
-send_kuka_3964R_single_char(POS)              # send POS signal to request position
-p = read_kuka_3964R_pose()                    # read position
-print(p)
-
-new_home = Pose(0, 370.02, 614.98, -180, 0, -180) # Without tool, in base NULLFRAME
-
+# Des positions
 pose_recup = Pose(350.86, 300.52, 430.88, 76.82, -0.02, -179.95) # Without tool, in base NULLFRAME
 pose_recup_loin = pose_recup.copy()
 pose_recup_loin.z += 50
@@ -24,8 +19,21 @@ pose_piece_non_conforme = Pose(-350, 400, 400, 49.19, -179, 0) # Without tool, i
 pose_piece_non_conforme_loin = pose_recup.copy()
 pose_piece_non_conforme_loin.z += 50
 
-kuka_go_to_pose(new_home) # Home
-kuka_go_to_pose(pose_devant_profilo_loin)
+#####################################################
+send_kuka_3964R_single_char(POS)              # send POS signal to request position
+p = read_kuka_3964R_pose()                    # read position
+print(p)
+
+#send_kuka_3964R_single_char(HOME) # Home
+print(kuka_go_to_pose(pose_devant_profilo))
+
+send_kuka_3964R_single_char(POS)              # send POS signal to request position
+p = read_kuka_3964R_pose()                    # read position
+print(p)
+
+
+
+
 exit()
 kuka_go_to_pose(pose_recup_loin) # Dessus tapis loin
 
@@ -35,7 +43,7 @@ send_kuka_3964R_single_char(GRAB) # Grab
 
 kuka_go_to_pose(pose_recup_loin) # Dessus tapis loin
 
-kuka_go_to_pose(new_home) # Back home
+send_kuka_3964R_single_char(HOME) # Back home
 TRUE = True
 while TRUE: # Les 4 premières faces
     kuka_go_to_pose(pose_devant_profilo_loin) # Approche du profilo
@@ -49,7 +57,7 @@ while TRUE: # Les 4 premières faces
 # La dernière face (le dessous)
 
 
-kuka_go_to_pose(new_home) # Home
+send_kuka_3964R_single_char(HOME) # Home
 
 # Le scan détermine si la pièce est conforme
 piece_conforme = True
@@ -59,15 +67,12 @@ if piece_conforme:
     kuka_go_to_pose(pose_piece_conforme) # Dessus tapis proche
     send_kuka_3964R_single_char(DROP) # Drop
     kuka_go_to_pose(pose_piece_conforme_loin) # Dessus tapis loin
-    kuka_go_to_pose(new_home) # Back home
+    send_kuka_3964R_single_char(HOME) # Back home
 else:
     kuka_go_to_pose(pose_piece_non_conforme_loin) # Dessus tapis loin
     kuka_go_to_pose(pose_piece_non_conforme) # Dessus tapis proche
     send_kuka_3964R_single_char(DROP) # Drop
     kuka_go_to_pose(pose_piece_non_conforme_loin) # Dessus tapis loin
-    kuka_go_to_pose(new_home) # Back home
+    send_kuka_3964R_single_char(HOME) # Back home
 
-# for i in range(10):
-#     p.y += 2
-#     kuka_go_to_pose(p)
-#     time.sleep(0.5)
+send_kuka_3964R_single_char(EXIT)
