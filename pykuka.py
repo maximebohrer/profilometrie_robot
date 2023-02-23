@@ -35,6 +35,10 @@ class Pose:
         """Convert the pose object into a string. 6 doubles values separated by spaces are returned."""
         return f"{format(self.x, '010.6f')} {format(self.y, '010.6f')} {format(self.z, '010.6f')} {format(self.a, '010.6f')} {format(self.b, '010.6f')} {format(self.c, '010.6f')}"
     
+    def copy(self):
+        """Return a copy of the pose"""
+        return Pose(self.x, self.y, self.z, self.a, self.b, self.c)
+
     def __repr__(self):
         return f"X = {self.x}; Y = {self.y}; Z = {self.z}; A = {self.a}; B = {self.b}; C = {self.c}"
 
@@ -64,14 +68,14 @@ def read_kuka_3964R_pose():
     """Read a pose from the robot using the 3964R protocol. Block until the pose is received."""
     return Pose.from_string(read_kuka_3964R_data_buffer().decode('utf-8'))
 
-def send_kuka_3964R_data_buffer(bytes):
+def send_kuka_3964R_data_buffer(input_bytes):
     """Send a byte buffer to the robot using the 3964R protocol."""
-    s.send(bytes([STX]))                          # send STX until we get DLE
+    s.write(bytes([STX]))                          # send STX until we get DLE
     while(s.read()[0] != DLE):
         s.write(bytes([STX]))
-    payload = bytes + bytes([DLE, ETX])           # add BLE ETX to the payload
+    payload = input_bytes + bytes([DLE, ETX])           # add BLE ETX to the payload
     bbc = calculate_bcc(payload, 0)               # calculate BCC to be added to the payload
-    s.send(payload + bytes([bbc]))                # send payload DLE ETX BCC
+    s.write(payload + bytes([bbc]))                # send payload DLE ETX BCC
     s.read_until(bytes([DLE]))                    # wait for DLE
 
 def send_kuka_3964R_string(string):
@@ -99,10 +103,3 @@ def kuka_go_to_pose(pose):
     while recv[0] != DONE:                        # wait DONE signal
         recv = read_kuka_3964R_data_buffer()
     return read_kuka_3964R_pose()                 # read and return pose
-
-if __name__ == '__main__':
-    send_kuka_3964R_single_char(POS)              # send POS signal to request position
-    p = read_kuka_3964R_pose()                    # read position
-    for i in range(10):
-        p.y += 2
-        kuka_go_to_pose(p)
