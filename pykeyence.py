@@ -164,7 +164,6 @@ def EthernetOpen(deviceID, ipAddress, port):
 def SetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTarget3, byTarget4, pData, dwDataSize):
 	byDepth = 1 # 1 pour running, 2 pour sauvegarder dans ROM
 	TargetSetting = LJV7IF_TARGET_SETTING()
-	if DEBUG: print(type(byType))
 	TargetSetting.byType = ct.c_byte(byType)
 	TargetSetting.byCategory = ct.c_byte(byCategory)
 	TargetSetting.byItem = ct.c_byte(byItem)
@@ -187,11 +186,25 @@ def SetSetting_SamplingFrequency(deviceID, program, freq):
 def SetSetting_BatchMeasurement(deviceID, program, state):
 	return SetSetting(deviceID, program + 16, 0, 3, 0, 0, 0, 0, ct.c_byte(state), 1)
 
+def GetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTarget3, byTarget4, dwDataSize):
+	byDepth = 1 # 1 pour running, 2 pour sauvegarder dans ROM
+	TargetSetting = LJV7IF_TARGET_SETTING()
+	TargetSetting.byType = ct.c_byte(byType)
+	TargetSetting.byCategory = ct.c_byte(byCategory)
+	TargetSetting.byItem = ct.c_byte(byItem)
+	TargetSetting.byTarget1 = ct.c_byte(byTarget1)
+	TargetSetting.byTarget2 = ct.c_byte(byTarget2)
+	TargetSetting.byTarget3 = ct.c_byte(byTarget3)
+	TargetSetting.byTarget4 = ct.c_byte(byTarget4)
+	pData = ct.c_ulong()
+	pdwError = ct.c_ulong()
 
+	mydll.LJV7IF_SetSetting(deviceID, byDepth, TargetSetting, ct.byref(pData), dwDataSize, ct.byref(pdwError))
+	if DEBUG: print(f"Récupération du setting {byType}. Sa valeur : {pData}")
+	return pdwError
 
-
-
-
+def GetSetting_BatchMeasurement(deviceID, program):
+	return GetSetting(deviceID, program + 16, 0, 3, 0, 0, 0, 0, 1)
 
 def GetMeasurementValue(deviceID):
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
