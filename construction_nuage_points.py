@@ -3,14 +3,15 @@ import numpy as np
 import csv
 from pykeyence import *
 import math
+import time
 
-script_dir = os.path.dirname(__file__)
-file_name_list = ["FaceFlat", "FaceUp"]
+SCRIPT_DIR = os.path.dirname(__file__)
+FILE_NAMES_LIST = ["FaceFlat", "FaceUp"]
 
 points = [[[]]]
 def ceci_est_une_fonction():
-    for file_name in file_name_list :
-        file_path = os.path.join(script_dir, './Faces - Raw CSV/', file_name, '.csv')
+    for file_name in FILE_NAMES_LIST :
+        file_path = os.path.join(SCRIPT_DIR, './Faces - Raw CSV/', file_name, '.csv')
         source_file = open(file_path, "r")
         file = list(csv.reader(source_file, delimiter = ";"))
 
@@ -50,50 +51,49 @@ def ceci_est_une_fonction():
 
 #############################################################################################
 # Script principal
-deviceID = 0
-ipAddress = "10.2.34.1"
-port = 24691
-portHighSpeed = 24692
+DEVICE_ID = 0
+IP_ADDRESS = "10.2.34.1"
+PORT = 24691
+PROGRAM = 8
 
+prof_raw =[]
 
-Initialize(debug = True)
+Initialize(debug = False)
 GetVersion()
-EthernetOpen(deviceID, ipAddress, port)
-#a = GetProfileAdvance(deviceID, 800)
-SetSetting_BatchMeasurement(deviceID, 8, SETTING_BATCH_MEASUREMENT_ON)
-SetSetting_SamplingFrequency(deviceID, 8, SETTING_SAMPLING_FREQUENCY_200_HZ)
-SetSetting_TriggerMode(deviceID, 8, SETTING_TRIGGER_MODE_CONTINUOUS)
+EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
+debut = time.time()
+while time.time() - debut < 1:
+    lin_raw = GetProfileAdvance(DEVICE_ID)
+    prof_raw.append(lin_raw)
 
+nb_lin = len(prof_raw)
+nb_col = len(prof_raw[0])
 
-exit()
-GetMeasurementValue(deviceID)
-Trigger(deviceID)
-StartMeasure(deviceID)
-StopMeasure(deviceID)
+prof_clean = prof_raw.copy()
+for i in range(nb_lin):
+    for j in range(nb_col):
+        if prof_clean[i][j] > 21000: 
+            prof_clean[i][j] = math.inf
 
-prof_complet_raw = GetBatchProfileAdvance(deviceID)
-print("################ BATCH ################")
-print(prof_complet_raw)
-
-prof_raw = GetProfileAdvance(deviceID)
-prof_clean = [a if a < 1000 else math.inf for a in prof_raw]
-
-print("################ PAS BATCH ################")
 print(prof_clean)
+#############################################################################################
+exit()
+# Adieu monde cruel
 
-# print("\n".join(map(lambda x: str(x), prof_raw)))
+# Set up
+SetSetting_BatchMeasurement(DEVICE_ID, PROGRAM, SETTING_BATCH_MEASUREMENT_OFF)
+SetSetting_SamplingFrequency(DEVICE_ID, PROGRAM, SETTING_SAMPLING_FREQUENCY_200_HZ)
+SetSetting_TriggerMode(DEVICE_ID, PROGRAM, SETTING_TRIGGER_MODE_CONTINUOUS)
 
+GetMeasurementValue(DEVICE_ID)
+Trigger(DEVICE_ID)
 
+StartMeasure(DEVICE_ID)
+StopMeasure(DEVICE_ID)
 
-# déclenchement  continu
-# type : 10h
-# Category : 00h
-# item : 03h
-# target 1~4 : 00h
-# byte 0 : 1
-
+prof_complet_raw = GetBatchProfileAdvance(DEVICE_ID) # MARCHE PAS
 
 input("Fin de la sim ? [ENTER]")
-CommClose(deviceID)
+CommClose(DEVICE_ID)
 Finalize()

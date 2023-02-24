@@ -44,7 +44,6 @@ for i in range(4): # Les 4 premières faces
     pose_devant_profilo.b += 90
     pose_devant_profilo_loin.b += 90
     break
-exit()
 
 # La dernière face (le dessous)
 go_to_pose(pose_dessous_profilo_loin, PTP) # Approche du profilo
