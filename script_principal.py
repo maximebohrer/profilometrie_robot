@@ -25,6 +25,18 @@ pose_piece_non_conforme_loin = pose_piece_non_conforme.copy()
 pose_piece_non_conforme_loin.z += 50
 
 #####################################################
+
+print(read_3964R_pose())
+
+
+
+
+
+
+
+exit()
+
+
 send_3964R_single_char(HOME)
 
 # Récupération de la pièce
