@@ -57,11 +57,11 @@ def read_kuka_3964R_data_buffer():
     return payload[:-2]                           # strip DLE and ETX and return the payload
 
 def read_kuka_3964R_string():
-    """Read a string from the robot using the 3964R protocol. Block until the string is received."""
+    """Read a buffer from the robot using the 3964R protocol, and convert it to a string. Block until the string is received."""
     return read_kuka_3964R_data_buffer().decode('utf-8')
 
 def read_kuka_3964R_pose():
-    """Read a pose from the robot using the 3964R protocol. Block until the pose is received."""
+    """Read a buffer from the robot using the 3964R protocol, and convert it to a pose. Block until the pose is received. The conversion is done by the from_string method of the Pose class: the buffer must consist of six double values separated by spaces."""
     return Pose.from_string(read_kuka_3964R_data_buffer().decode('utf-8'))
 
 def send_kuka_3964R_data_buffer(bytes):
@@ -75,11 +75,11 @@ def send_kuka_3964R_data_buffer(bytes):
     s.read_until(bytes([DLE]))                    # wait for DLE
 
 def send_kuka_3964R_string(string):
-    """Send a string to the robot using the 3964R protocol."""
+    """Send a string to the robot using the 3964R protocol. The string is converted to a byte buffer and is then sent."""
     send_kuka_3964R_data_buffer(bytes(string, 'utf-8'))
 
 def send_kuka_3964R_single_char(byte):
-    """Send a single character to the robot using the 3964R protocol."""
+    """Send a single character to the robot using the 3964R protocol. """
     send_kuka_3964R_data_buffer(bytes([byte]))
 
 def send_kuka_3964R_single_double(double):
