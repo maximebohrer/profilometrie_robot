@@ -1,5 +1,5 @@
 import serial
-s = serial.Serial(port="COM1", baudrate=9600, bytesize=8, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE)
+s = serial.Serial(port="COM1", baudrate=9600, bytesize=8, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE) # TODO s=serial.Serial() et créer une fonction initilize(port)
 
 # characters used to communicate
 DLE = 16
@@ -68,7 +68,7 @@ def read_3964R_string():
     return read_3964R_data_buffer().decode('utf-8')
 
 def read_3964R_pose():
-    """Read a buffer from the robot using the 3964R protocol, and convert it to a pose. Block until the pose is received. The conversion is done by the from_string method of the Pose class: the buffer must consist of six double values separated by spaces. This python"""
+    """Read a buffer from the robot using the 3964R protocol, and convert it to a pose. Block until the pose is received. The conversion is done by the from_string method of the Pose class: the buffer must consist of six double values separated by spaces. This function must be used when the SEND function is called in the robot program."""
     return Pose.from_string(read_3964R_data_buffer().decode('utf-8'))
 
 def send_3964R_data_buffer(input_bytes):
@@ -86,15 +86,15 @@ def send_3964R_string(string):
     send_3964R_data_buffer(bytes(string, 'utf-8'))
 
 def send_3964R_single_char(byte):
-    """Send a single character to the robot using the 3964R protocol. The character is converted to a size 1 byte buffer and is then sent."""
+    """Send a single character to the robot using the 3964R protocol. The character is converted to a size 1 byte buffer and is then sent. This function must be used when the READ_CHAR function is called in the robot program."""
     send_3964R_data_buffer(bytes([byte]))
 
 def send_3964R_single_double(double):
-    """Send a double value to the robot using the 3964R protocol. The value converted to a byte buffer formated as 000.000000 and is then sent."""
+    """Send a double value to the robot using the 3964R protocol. The value converted to a byte buffer formated as 000.000000 and is then sent. This function must be used when the READ_DOUBLE is called is the robot program."""
     send_3964R_data_buffer(bytes(format(double, '010.6f'), 'utf-8'))
 
 def go_to_pose(pose, movement_type):
-    """Ask the robot to reach a specific pose using a specific movement type, return the pose that the robot actually reached"""
+    """Ask the robot to reach a specific pose using a specific movement type, return the pose that the robot actually reached. This function is only used when the PC2KUKA program is running on the robot, which can read and execute this order."""
     send_3964R_single_char(movement_type)         # send GO signal
     send_3964R_single_double(pose.x)              # send the 6 double values the robot is waiting for
     send_3964R_single_double(pose.y)
@@ -108,5 +108,6 @@ def go_to_pose(pose, movement_type):
     return read_3964R_pose()                      # read and return pose
 
 def get_pose():
-    send_3964R_single_char(POS)
-    return read_3964R_pose()
+    """Ask the robot to send back its pose, return the pose. This function is only used when the PC2KUKA program is running on the robot, which can read and execute this order."""
+    send_3964R_single_char(POS)                   # send POS signal
+    return read_3964R_pose()                      # read and return pose
