@@ -194,12 +194,12 @@ def Initialize(debug = False):
 	global DEBUG
 	DEBUG = debug
 	res = dll.LJV7IF_Initialize()
-	if DEBUG: print(f"Initialisation du DLL : {hex(res)}")
+	if DEBUG: print(f"[Initialize] result: {hex(res)}")
 	return res
 
 def GetVersion():
 	res = dll.LJV7IF_GetVersion()
-	if DEBUG: print(f"Version du DLL : {hex(res)}")
+	if DEBUG: print(f"[GetVersion] version: {hex(res)}")
 	return res
 
 def EthernetOpen(deviceID, ipAddress, port):
@@ -207,11 +207,11 @@ def EthernetOpen(deviceID, ipAddress, port):
 	Kconnection.abyIpAddress[0], Kconnection.abyIpAddress[1], Kconnection.abyIpAddress[2], Kconnection.abyIpAddress[3] = map(lambda x: int(x), ipAddress.split(".", 4))
 	Kconnection.wPortNo = port
 	res = dll.LJV7IF_EthernetOpen(deviceID, ct.byref(Kconnection))
-	if DEBUG: print(f"Connexion à l'adresse IP : {ipAddress}, sur le port {Kconnection.wPortNo} : {hex(res)}")
+	if DEBUG: print(f"[EthernetOpen] IP: {ipAddress}, port: {Kconnection.wPortNo}, result: {hex(res)}")
 	return res
 
 def SetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTarget3, byTarget4, pData, dwDataSize):
-	byDepth = 1 # 1 pour running, 2 pour sauvegarder dans ROM
+	byDepth = LJV7IF_SETTING_DEPTH_RUNNING # 1 pour running, 2 pour sauvegarder dans ROM
 	TargetSetting = LJV7IF_TARGET_SETTING()
 	TargetSetting.byType = ct.c_byte(byType)
 	TargetSetting.byCategory = ct.c_byte(byCategory)
@@ -223,7 +223,7 @@ def SetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTar
 	pdwError = ct.c_ulong()
 
 	dll.LJV7IF_SetSetting(deviceID, byDepth, TargetSetting, ct.byref(pData), dwDataSize, ct.byref(pdwError))
-	if DEBUG: print(f"Mise à jour du setting de type : {byType}")
+	if DEBUG: print(f"[SetSetting] setting (type-category-item): {byType}-{byCategory}-{byItem}, result: {hex(pdwError)}")
 	return pdwError
 
 def SetSetting_TriggerMode(deviceID, program, mode):
@@ -248,8 +248,8 @@ def GetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTar
 	pData = ct.c_ulong()
 	pdwError = ct.c_ulong()
 
-	dll.LJV7IF_SetSetting(deviceID, byDepth, TargetSetting, ct.byref(pData), dwDataSize, ct.byref(pdwError))
-	if DEBUG: print(f"Récupération du setting {byType}. Sa valeur : {pData}")
+	dll.LJV7IF_GetSetting(deviceID, byDepth, TargetSetting, ct.byref(pData), dwDataSize, ct.byref(pdwError))
+	if DEBUG: print(f"[SetSetting] setting (type-category-item): {byType}-{byCategory}-{byItem}, value: {pData}, result: {hex(pdwError)}")
 	return pdwError
 
 def GetSetting_BatchMeasurement(deviceID, program):
@@ -269,7 +269,7 @@ def GetProfileAdvance(deviceID):
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()
 
 	res = dll.LJV7IF_GetProfileAdvance(deviceID, ct.byref(pProfileInfo), pdwProfileData, dwDataSize, ct.byref(pMeasureData)) #ct.cast(pMeasureData, ct.POINTER(LJV7IF_MEASURE_DATA))
-	if DEBUG: print(f"Getting profile advance : {hex(res)}") # TODO raise exception quand res != 0
+	if DEBUG: print(f"[GetProfileAdvance] result: {hex(res)}") # TODO raise exception quand res != 0
 	return [(pdwProfileData[i] * resolution) for i in range(6, numberOfInt - 1)]
 	#return [(pdwProfileData[i] * resolution) if (pdwProfileData[i] * resolution) < 100 else 0 for i in range(6, numberOfInt - 1)]
 	#return [ct.cast(pdwProfileData, ct.POINTER(ct.c_double))[i] * resolution for i in range(6, numberOfInt - 1)]
@@ -280,45 +280,73 @@ def GetProfileAdvance_A_TESTER(deviceID):
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()        # (OUT) This buffer stores the data for all 16 OUTs including the OUTs that are not measuring
 
 	res = dll.LJV7IF_GetProfileAdvance(deviceID, ct.byref(pProfileInfo), ct.byref(pdwProfileData), ct.sizeof(pdwProfileData), ct.byref(pMeasureData)) #ct.cast(pMeasureData, ct.POINTER(LJV7IF_MEASURE_DATA))
-	if DEBUG: print(f"Getting profile advance : {hex(res)}")
+	if DEBUG: print(f"[GetProfileAdvance] {hex(res)}")
 	return [(pdwProfileData.data[i] * RESOLUTION) for i in range(800)]
+
+# class LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ(ct.Structure):
+# 	_fields_ = [
+# 		("byPosMode", ct.c_byte),            # Specifies the get profile position specification method. See LJV7IF_BATCH_POS.
+# 		("reserve", ct.c_byte * 3),
+# 		("dwGetBatchNo", ct.c_ulong),        # When byPosMode is LJV7IF_BATCH_POS_SPEC, specifies the batch number for the profiles to get.
+# 		("dwGetProfNo", ct.c_ulong),         # Specifies the profile number for the profiles to get.
+# 		("byGetProfCnt", ct.c_byte),         # The number of profiles to read. If the communication buffer is insufficient, the number of profiles specified by byGetProfCnt may not be acquired. In this situation, the maximum number of profiles that can be acquired is returned.
+# 		("reserve", ct.c_byte * 3)
+# 	]
+
+# class LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP(ct.Structure):
+# 	_fields_ = [
+# 		("dwGetBatchNo", ct.c_ulong),        # The batch number that was read this time
+# 		("dwGetBatchProfCnt", ct.c_ulong),   # The number of profiles in the batch that was read this time.
+# 		("dwGetBatchTopProfNo", ct.c_ulong), # Indicates what number profile in the batch is the oldest profile out of the profiles that were read this time.
+# 		("byGetProfCnt", ct.c_byte),         # The number of profiles that were read this time.
+# 		("reserve", ct.c_byte * 3)
+# 	]
 
 def GetBatchProfileAdvance(deviceID):
 	pReq = LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ()      # (IN) Specifies the position, etc., of the profiles to get.
+	pReq.byPosMode = LJV7IF_BATCH_POS_CURRENT
+	pReq.dwGetProfNo = 0
+	pReq.byGetProfCnt = 10
 	pRsp = LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP()      # (OUT) Indicates the position, etc., of the profiles that were actually acquired.
 	pProfileInfo = LJV7IF_PROFILE_INFO()               # (OUT) The profile information for the acquired profiles
 	pdwBatchData = (BATCH_DATA * 10)()                 # (OUT) The buffer to get the profile data. only the number of profiles that could be acquired are returned.
-	
 	pBatchMeasureData = (LJV7IF_MEASURE_DATA * 16)()   # (OUT) The measurement results for the batch data that is the target to get. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring.
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()        # (OUT) The newest measurement results at the time the command was processed. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring. The host requires the passing of a buffer LJV7IF_MEASURE_DATA[16] in size.
 
 	res = dll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.byref(pReq), ct.byref(pRsp), ct.byref(pProfileInfo), ct.byref(pdwBatchData), ct.sizeof(pdwBatchData), ct.byref(pBatchMeasureData), ct.byref(pMeasureData))
-	if DEBUG: print(f"Getting batch profile advance : {hex(res)}")
+	if DEBUG: print(f"[GetBatchProfileAdvance] [First batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pReq.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}")
+	totalProfiles = pRsp.byGetProfCnt
+	pReq.byPosMode = LJV7IF_BATCH_POS_SPEC
+	while totalProfiles < 100:
+		pReq.dwGetBatchNo = pRsp.dwGetBatchNo
+		res = dll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.byref(pReq), ct.byref(pRsp), ct.byref(pProfileInfo), ct.byref(pdwBatchData), ct.sizeof(pdwBatchData), ct.byref(pBatchMeasureData), ct.byref(pMeasureData))
+		totalProfiles += pRsp.byGetProfCnt
+		if DEBUG: print(f"[GetBatchProfileAdvance] [Next batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pReq.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}, total number of profiles: {totalProfiles}")
 	#return [(pdwBatchData[i] * RESOLUTION) for i in range(numberOfInt)]
 
 def Trigger(deviceID):
 	res = dll.LJV7IF_Trigger(deviceID)
-	if DEBUG: print(f"Trigger : {hex(res)}")
+	if DEBUG: print(f"[Trigger] result: {hex(res)}")
 	return res
 
 def StartMeasure(deviceID):
 	res = dll.LJV7IF_StartMeasure(deviceID)
-	if DEBUG: print(f"Début de la mesure : {hex(res)}")
+	if DEBUG: print(f"[StartMeasure] result: {hex(res)}")
 	return res
 
 def StopMeasure(deviceID):
 	res = dll.LJV7IF_StopMeasure(deviceID)
-	if DEBUG: print(f"Fin de la mesure : {hex(res)}")
+	if DEBUG: print(f"[StopMeasure] result: {hex(res)}")
 	return res
 
 def CommClose(deviceID):
 	res = dll.LJV7IF_CommClose(deviceID)
-	if DEBUG: print(f"Fin de la connexion avec device {deviceID} : {hex(res)}")
+	if DEBUG: print(f"[CommClose] device: {deviceID}, result: {hex(res)}")
 	return res
 
 def Finalize():
 	res = dll.LJV7IF_Finalize()
-	if DEBUG: print(f"Finalisation du DLL : {hex(res)}")
+	if DEBUG: print(f"[Finalize] result: {hex(res)}")
 	return res
 
 if __name__ == "__main__":
