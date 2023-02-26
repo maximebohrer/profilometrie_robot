@@ -314,14 +314,14 @@ def GetBatchProfileAdvance(deviceID):
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()        # (OUT) The newest measurement results at the time the command was processed. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring. The host requires the passing of a buffer LJV7IF_MEASURE_DATA[16] in size.
 
 	res = dll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.byref(pReq), ct.byref(pRsp), ct.byref(pProfileInfo), ct.byref(pdwBatchData), ct.sizeof(pdwBatchData), ct.byref(pBatchMeasureData), ct.byref(pMeasureData))
-	if DEBUG: print(f"[GetBatchProfileAdvance] [First batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pReq.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}")
+	if DEBUG: print(f"[GetBatchProfileAdvance] [First batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pRsp.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}, result: {hex(res)}")
 	totalProfiles = pRsp.byGetProfCnt
 	pReq.byPosMode = LJV7IF_BATCH_POS_SPEC
 	while totalProfiles < 100:
 		pReq.dwGetBatchNo = pRsp.dwGetBatchNo
 		res = dll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.byref(pReq), ct.byref(pRsp), ct.byref(pProfileInfo), ct.byref(pdwBatchData), ct.sizeof(pdwBatchData), ct.byref(pBatchMeasureData), ct.byref(pMeasureData))
 		totalProfiles += pRsp.byGetProfCnt
-		if DEBUG: print(f"[GetBatchProfileAdvance] [Next batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pReq.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}, total number of profiles: {totalProfiles}")
+		if DEBUG: print(f"[GetBatchProfileAdvance] [Next batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pRsp.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}, total number of profiles: {totalProfiles}, result: {hex(res)}")
 	#return [(pdwBatchData[i] * RESOLUTION) for i in range(numberOfInt)]
 
 def Trigger(deviceID):
@@ -350,7 +350,8 @@ def Finalize():
 	return res
 
 if __name__ == "__main__":
-	pass
+	DEBUG = True
+	GetBatchProfileAdvance(0)
 
 
 
