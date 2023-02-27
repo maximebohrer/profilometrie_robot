@@ -28,3 +28,14 @@ API Profilomètre
 ----------------
 
 La communication avec le profilomètre s'effectue grâce à au fichier `LJV7_IF.dll` fourni par Keyence. Ce type de DLL étant habituellement prévu pour être utilisé dans des langages bas niveau comme le C ou le C++, un fichier `pyprofilo.py` permettra de simplifier les appels aux fonctions du DLL en s'y interfaçant grâce au module `ctypes`. Ce dernier permet de travailler avec tous les types du langage C en python, de charger des fichiers DLL, et d'appeler les fonctions qui s'y trouvent, après un travail de convertion de types, de gestion de structures C, etc. Ce fichier pourra ensuite être importé dans le scipt principal.
+
+TODO List
+---------
+
+- réparer axe 4
+- tester get batch profile
+- faire un cube avec des modifs
+- imprimer une autre pince
+- lubrifier le vérin de la pince
+- vérifier les transformations 3d avec kuka sim pro
+- refaire la pièce jaune
