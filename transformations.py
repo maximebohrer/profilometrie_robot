@@ -7,27 +7,25 @@ a = np.radians(0.2)
 b = 0.3
 c = 0.4
 
-t = np.matrix([[1, 0, 0, x],
-               [0, 1, 0, y],
-               [0, 0, 1, z],
-               [0, 0, 0, 1]])
+#a sur z
+#c sur x
+#b sur y
 
-rx = np.matrix([[1, 0,         0,          0],
-                [0, np.cos(a), -np.sin(a), 0],
-                [0, np.sin(a), np.cos(a),  0],
-                [0, 0,         0,          1]])
+def Rx(a):
+    return np.matrix([[1, 0,         0         ],        
+                      [0, np.cos(a), -np.sin(a)],
+                      [0, np.sin(a), np.cos(a) ]])
 
-ry = np.matrix([[np.cos(b),  0, np.sin(b), 0],
-                [0,          1, 0,         0],
-                [-np.sin(b), 0, np.cos(b), 0],
-                [0,          0, 0,         1]])
+def Ry(a):
+    return np.matrix([[np.cos(a),  0, np.sin(a)],
+                      [0,          1, 0        ],        
+                      [-np.sin(a), 0, np.cos(a)]])
 
-rz = np.matrix([[np.cos(c), -np.sin(c), 0, 0],
-                [np.sin(c), np.cos(c),  0, 0],
-                [0,         0,          1, 0],
-                [0,         0,          0, 1]])
+def Rz(a):
+    return np.matrix([[np.cos(a), -np.sin(a), 0],
+                      [np.sin(a), np.cos(a),  0],
+                      [0,         0,          1]])
 
-p = (np.matrix([0,0,0,1])).T
-print(rx*ry*rz*t*p)
-print(t*rx*ry*rz*p)
-#print(T*Rz*Ry*Rx)
+def get_homogeneous_transformation_matrix(x, y, z, a, b, c):
+    rotation_matrix = Rz(a) * Ry(b) * Rz(c)
+    return np.vstack([np.hstack([rotation_matrix, np.array([[x], [y], [z]])]), np.array([[0, 0, 0, 1]])])
