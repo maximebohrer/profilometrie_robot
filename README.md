@@ -38,7 +38,7 @@ TODO List
 - imprimer une autre pince
 - lubrifier le vérin de la pince
 - vérifier les transformations 3d avec kuka sim pro
-- refaire la pièce jaune
+- refaire la pièce rouge
 
 test
 test
