@@ -39,3 +39,5 @@ TODO List
 - lubrifier le vérin de la pince
 - vérifier les transformations 3d avec kuka sim pro
 - refaire la pièce jaune
+
+test
