@@ -18,8 +18,10 @@ Initialize(debug = False)
 GetVersion()
 EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
+input("Start measure ? [ENTER]")
 StartMeasure(DEVICE_ID)
-time.sleep(4)
+
+input("Stop Measure ? [ENTER]")
 StopMeasure(DEVICE_ID)
 
 NB_PROF_PAR_LOT = 10
@@ -27,10 +29,6 @@ LIM_NB_PROF = 1000
 yStep = 0.1
 
 cloud = GetBatchProfileAdvance(DEVICE_ID, NB_PROF_PAR_LOT, LIM_NB_PROF, yStep)
-
-
-
-
 
 # Visualisation 3D du profile
 FILE_NAME = "nuage.txt"
