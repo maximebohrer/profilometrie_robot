@@ -28,6 +28,11 @@ yStep = 0.1
 
 cloud = GetBatchProfileAdvance(DEVICE_ID, NB_PROF_PAR_LOT, LIM_NB_PROF, yStep)
 
+
+
+
+
+# Visualisation 3D du profile
 FILE_NAME = "nuage.txt"
 SCRIPT_DIR = os.path.dirname(__file__)
 
