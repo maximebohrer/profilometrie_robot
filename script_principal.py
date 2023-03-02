@@ -33,7 +33,7 @@ while done != DONE:
 StopMeasure(DEVICE_ID)
 
 
-NB_PROF_PAR_LOT = 10
+NB_PROF_PAR_LOT = 250
 LIM_NB_PROF = 1000
 yStep = 0.1
 

@@ -278,7 +278,7 @@ def GetBatchProfileAdvance(deviceID, nb_prof_par_lot, lim_nb_prof, yStep):
 	pReq.byGetProfCnt = nb_prof_par_lot
 	pRsp = LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP()      # (OUT) Indicates the position, etc., of the profiles that were actually acquired.
 	pProfileInfo = LJV7IF_PROFILE_INFO()               # (OUT) The profile information for the acquired profiles
-	pdwBatchData = (BATCH_DATA * 10)()                 # (OUT) The buffer to get the profile data. only the number of profiles that could be acquired are returned.
+	pdwBatchData = (BATCH_DATA * nb_prof_par_lot)()    # (OUT) The buffer to get the profile data. only the number of profiles that could be acquired are returned.
 	pBatchMeasureData = (LJV7IF_MEASURE_DATA * 16)()   # (OUT) The measurement results for the batch data that is the target to get. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring.
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()        # (OUT) The newest measurement results at the time the command was processed. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring. The host requires the passing of a buffer LJV7IF_MEASURE_DATA[16] in size.
 
