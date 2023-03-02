@@ -89,44 +89,44 @@ dll = ct.cdll.LoadLibrary(os.path.join(os.getcwd(), "LJV7_IF.dll")) #"C:/Users/p
 
 class LJV7IF_ETHERNET_CONFIG(ct.Structure):
 	_fields_ = [
-		("abyIpAddress", ct.c_byte * 4),
+		("abyIpAddress", ct.c_ubyte * 4),
 		("wPortNo", ct.c_ushort),
-		("reserve", ct.c_byte * 2)
+		("reserve", ct.c_ubyte * 2)
 	]
 
 class LJV7IF_HIGH_SPEED_PRE_START_REQ(ct.Structure):
 	_fields_ = [
-		("bySendPos", ct.c_byte),
-		("reserve", ct.c_byte * 3)
+		("bySendPos", ct.c_ubyte),
+		("reserve", ct.c_ubyte * 3)
 	]
 
 class LJV7IF_PROFILE_INFO(ct.Structure):
 	_fields_ = [
-		("byProfileCnt", ct.c_byte),        # Wheter dicates the amount of profile data stored. (When 2 head/combine (wide) is off, 2 profile data units is stored, otherwise 1 profile data unit is stored.)
-		("byEnvelope", ct.c_byte),          # Whether profile compression (time axis) is on. 0: off, 1: on.
-		("reserve", ct.c_byte * 2),
+		("byProfileCnt", ct.c_ubyte),        # Wheter dicates the amount of profile data stored. (When 2 head/combine (wide) is off, 2 profile data units is stored, otherwise 1 profile data unit is stored.)
+		("byEnvelope", ct.c_ubyte),          # Whether profile compression (time axis) is on. 0: off, 1: on.
+		("reserve", ct.c_ubyte * 2),
 		("wProfDataCnt", ct.c_ushort),      # Profile data count (initial setting: 800).
-		("reserve2", ct.c_byte * 2),
+		("reserve2", ct.c_ubyte * 2),
 		("IXStart", ct.c_long),             # 1st point X coordinate.
 		("IXPitch", ct.c_long)              # Profile data X direction interval. IXStart and IXPitch are stored in 0.01 μm units.
 	]
 
 class LJV7IF_MEASURE_DATA(ct.Structure):
 	_fields_ = [
-		("byDataInfo", ct.c_byte),           # This variable indicates whether or not the measurement value (fValue) is valid, and if it is not a valid value, what kind of data it is. See LJV7IF_MEASURE_DATA_INFO.
-		("byJudge", ct.c_byte),              # Tolerance judgment result. See LJV7IF_JUDGE_RESULT.
-		("reserve", ct.c_byte * 2),  
+		("byDataInfo", ct.c_ubyte),           # This variable indicates whether or not the measurement value (fValue) is valid, and if it is not a valid value, what kind of data it is. See LJV7IF_MEASURE_DATA_INFO.
+		("byJudge", ct.c_ubyte),              # Tolerance judgment result. See LJV7IF_JUDGE_RESULT.
+		("reserve", ct.c_ubyte * 2),  
 		("fvalue", ct.c_float)               # Measurement value. The unit used for measurement values is the minimum display unit set for Target OUT in program settings. When the minimum display unit is 1 mm to 0.001 mm, the measurement value unit is [mm]. When 1 um to 0.1 um, the measurement value unit is [um]. The unit for sectional areas is mm^2, and the unit for angles is deg. When not a valid value, a large negative value is stored (-10^10).
 	]
 
 class LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ(ct.Structure):
 	_fields_ = [
-		("byPosMode", ct.c_byte),            # Specifies the get profile position specification method. See LJV7IF_BATCH_POS.
-		("reserve", ct.c_byte * 3),
+		("byPosMode", ct.c_ubyte),            # Specifies the get profile position specification method. See LJV7IF_BATCH_POS.
+		("reserve", ct.c_ubyte * 3),
 		("dwGetBatchNo", ct.c_ulong),        # When byPosMode is LJV7IF_BATCH_POS_SPEC, specifies the batch number for the profiles to get.
 		("dwGetProfNo", ct.c_ulong),         # Specifies the profile number for the profiles to get.
-		("byGetProfCnt", ct.c_byte),         # The number of profiles to read. If the communication buffer is insufficient, the number of profiles specified by byGetProfCnt may not be acquired. In this situation, the maximum number of profiles that can be acquired is returned.
-		("reserve", ct.c_byte * 3)
+		("byGetProfCnt", ct.c_ubyte),         # The number of profiles to read. If the communication buffer is insufficient, the number of profiles specified by byGetProfCnt may not be acquired. In this situation, the maximum number of profiles that can be acquired is returned.
+		("reserve", ct.c_ubyte * 3)
 	]
 
 class LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP(ct.Structure):
@@ -134,19 +134,19 @@ class LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP(ct.Structure):
 		("dwGetBatchNo", ct.c_ulong),        # The batch number that was read this time
 		("dwGetBatchProfCnt", ct.c_ulong),   # The number of profiles in the batch that was read this time.
 		("dwGetBatchTopProfNo", ct.c_ulong), # Indicates what number profile in the batch is the oldest profile out of the profiles that were read this time.
-		("byGetProfCnt", ct.c_byte),         # The number of profiles that were read this time.
-		("reserve", ct.c_byte * 3)
+		("byGetProfCnt", ct.c_ubyte),         # The number of profiles that were read this time.
+		("reserve", ct.c_ubyte * 3)
 	]
 
 class LJV7IF_GET_PROFILE_REQ(ct.Structure):
 	_fields_ = [
-		("byTargetBank", ct.c_byte),
-		("byPosMode", ct.c_byte),
-		("reserve", ct.c_byte * 2),
+		("byTargetBank", ct.c_ubyte),
+		("byPosMode", ct.c_ubyte),
+		("reserve", ct.c_ubyte * 2),
 		("dwGetProfNo", ct.c_ulong),
-		("byGetProfCnt", ct.c_byte),
-		("byErase", ct.c_byte),
-		("reserve", ct.c_byte * 2)
+		("byGetProfCnt", ct.c_ubyte),
+		("byErase", ct.c_ubyte),
+		("reserve", ct.c_ubyte * 2)
 	]
 
 class LJV7IF_PROFILE_HEADER(ct.Structure):
@@ -164,14 +164,14 @@ class LJV7IF_PROFILE_FOOTER(ct.Structure):
 
 class LJV7IF_TARGET_SETTING(ct.Structure):
 	_fields_ = [
-		("byType", ct.c_byte),
-		("byCategory", ct.c_byte),
-		("byItem", ct.c_byte),
-		("reserve", ct.c_byte),
-		("byTarget1", ct.c_byte),
-		("byTarget2", ct.c_byte),
-		("byTarget3", ct.c_byte),
-		("byTarget4", ct.c_byte)
+		("byType", ct.c_ubyte),
+		("byCategory", ct.c_ubyte),
+		("byItem", ct.c_ubyte),
+		("reserve", ct.c_ubyte),
+		("byTarget1", ct.c_ubyte),
+		("byTarget2", ct.c_ubyte),
+		("byTarget3", ct.c_ubyte),
+		("byTarget4", ct.c_ubyte)
 	]
 
 class PROFILE_DATA(ct.Structure):
@@ -212,13 +212,13 @@ def EthernetOpen(deviceID, ipAddress, port):
 def SetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTarget3, byTarget4, pData, dwDataSize):
 	byDepth = LJV7IF_SETTING_DEPTH_RUNNING # 1 pour running, 2 pour sauvegarder dans ROM
 	TargetSetting = LJV7IF_TARGET_SETTING()
-	TargetSetting.byType = ct.c_byte(byType)
-	TargetSetting.byCategory = ct.c_byte(byCategory)
-	TargetSetting.byItem = ct.c_byte(byItem)
-	TargetSetting.byTarget1 = ct.c_byte(byTarget1)
-	TargetSetting.byTarget2 = ct.c_byte(byTarget2)
-	TargetSetting.byTarget3 = ct.c_byte(byTarget3)
-	TargetSetting.byTarget4 = ct.c_byte(byTarget4)
+	TargetSetting.byType = ct.c_ubyte(byType)
+	TargetSetting.byCategory = ct.c_ubyte(byCategory)
+	TargetSetting.byItem = ct.c_ubyte(byItem)
+	TargetSetting.byTarget1 = ct.c_ubyte(byTarget1)
+	TargetSetting.byTarget2 = ct.c_ubyte(byTarget2)
+	TargetSetting.byTarget3 = ct.c_ubyte(byTarget3)
+	TargetSetting.byTarget4 = ct.c_ubyte(byTarget4)
 	pdwError = ct.c_ulong()
 
 	dll.LJV7IF_SetSetting(deviceID, byDepth, TargetSetting, ct.byref(pData), dwDataSize, ct.byref(pdwError))
@@ -226,24 +226,24 @@ def SetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTar
 	return pdwError
 
 def SetSetting_TriggerMode(deviceID, program, mode):
-	return SetSetting(deviceID, program + 16, 0, 1, 0, 0, 0, 0, ct.c_byte(mode), 1)
+	return SetSetting(deviceID, program + 16, 0, 1, 0, 0, 0, 0, ct.c_ubyte(mode), 1)
 
 def SetSetting_SamplingFrequency(deviceID, program, freq):
-	return SetSetting(deviceID, program + 16, 0, 2, 0, 0, 0, 0, ct.c_byte(freq), 1)
+	return SetSetting(deviceID, program + 16, 0, 2, 0, 0, 0, 0, ct.c_ubyte(freq), 1)
 
 def SetSetting_BatchMeasurement(deviceID, program, state):
-	return SetSetting(deviceID, program + 16, 0, 3, 0, 0, 0, 0, ct.c_byte(state), 1)
+	return SetSetting(deviceID, program + 16, 0, 3, 0, 0, 0, 0, ct.c_ubyte(state), 1)
 
 def GetSetting(deviceID, byType, byCategory, byItem, byTarget1, byTarget2, byTarget3, byTarget4, dwDataSize):
 	byDepth = LJV7IF_SETTING_DEPTH_RUNNING # 1 pour running, 2 pour sauvegarder dans ROM
 	TargetSetting = LJV7IF_TARGET_SETTING()
-	TargetSetting.byType = ct.c_byte(byType)
-	TargetSetting.byCategory = ct.c_byte(byCategory)
-	TargetSetting.byItem = ct.c_byte(byItem)
-	TargetSetting.byTarget1 = ct.c_byte(byTarget1)
-	TargetSetting.byTarget2 = ct.c_byte(byTarget2)
-	TargetSetting.byTarget3 = ct.c_byte(byTarget3)
-	TargetSetting.byTarget4 = ct.c_byte(byTarget4)
+	TargetSetting.byType = ct.c_ubyte(byType)
+	TargetSetting.byCategory = ct.c_ubyte(byCategory)
+	TargetSetting.byItem = ct.c_ubyte(byItem)
+	TargetSetting.byTarget1 = ct.c_ubyte(byTarget1)
+	TargetSetting.byTarget2 = ct.c_ubyte(byTarget2)
+	TargetSetting.byTarget3 = ct.c_ubyte(byTarget3)
+	TargetSetting.byTarget4 = ct.c_ubyte(byTarget4)
 	pData = ct.c_ulong()
 	pdwError = ct.c_ulong()
 
@@ -336,12 +336,12 @@ if __name__ == "__main__":
 '''
 class LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ(ct.Structure):
 	_fields_ = [
-		("byPosMode", ct.c_byte),            # Specifies the get profile position specification method. See LJV7IF_BATCH_POS.
-		("reserve", ct.c_byte * 3),
+		("byPosMode", ct.c_ubyte),            # Specifies the get profile position specification method. See LJV7IF_BATCH_POS.
+		("reserve", ct.c_ubyte * 3),
 		("dwGetBatchNo", ct.c_ulong),        # When byPosMode is LJV7IF_BATCH_POS_SPEC, specifies the batch number for the profiles to get.
 		("dwGetProfNo", ct.c_ulong),         # Specifies the profile number for the profiles to get.
-		("byGetProfCnt", ct.c_byte),         # The number of profiles to read. If the communication buffer is insufficient, the number of profiles specified by byGetProfCnt may not be acquired. In this situation, the maximum number of profiles that can be acquired is returned.
-		("reserve", ct.c_byte * 3)
+		("byGetProfCnt", ct.c_ubyte),         # The number of profiles to read. If the communication buffer is insufficient, the number of profiles specified by byGetProfCnt may not be acquired. In this situation, the maximum number of profiles that can be acquired is returned.
+		("reserve", ct.c_ubyte * 3)
 	]
 
 class LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP(ct.Structure):
@@ -349,15 +349,15 @@ class LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP(ct.Structure):
 		("dwGetBatchNo", ct.c_ulong),        # The batch number that was read this time
 		("dwGetBatchProfCnt", ct.c_ulong),   # The number of profiles in the batch that was read this time.
 		("dwGetBatchTopProfNo", ct.c_ulong), # Indicates what number profile in the batch is the oldest profile out of the profiles that were read this time.
-		("byGetProfCnt", ct.c_byte),         # The number of profiles that were read this time.
-		("reserve", ct.c_byte * 3)
+		("byGetProfCnt", ct.c_ubyte),         # The number of profiles that were read this time.
+		("reserve", ct.c_ubyte * 3)
 	]
 
 def HighSpeedDataEthernetCommunicationInitialize(deviceID, ipAddress, port):
 	data = 0
 	def mafonctioncallback(pBuffer, dwSize, dwCount, dwNotify, dwUser):
 		if DEBUG: print(pBuffer)
-	prototype = ct.CFUNCTYPE(ct.c_void_p, ct.POINTER(ct.c_byte),
+	prototype = ct.CFUNCTYPE(ct.c_void_p, ct.POINTER(ct.c_ubyte),
 			  ct.c_ulong, ct.c_ulong, ct.c_ulong, ct.c_ulong)
 		
 	Kconnection = LJV7IF_ETHERNET_CONFIG()
