@@ -1,6 +1,7 @@
 import time
 from pykuka import *
 from pykeyence import *
+from transformations import *
 # import open3d as o3d
 import os
 
@@ -8,50 +9,43 @@ DEVICE_ID   = 0
 IP_ADDRESS  = "10.2.34.1"
 PORT        = 24691
 PROGRAM     = 8
-FILE_NAME   = "nuage.txt"
+vitesse_robot       = 0.0065 # m/s
+frequence_profilo   = 50 # Hz
+yStep = vitesse_robot * 1000 / frequence_profilo # mm/s
+base_point_cloud_dans_base_profilo = get_htm(0, 0, -170, 0, 0, 0)
 
 Initialize(debug = True)
 GetVersion()
 EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
-#send_3964R_single_char(GO)
+f = open("nuage.txt", 'w')
 
-go = read_3964R_single_char()
-
-if go != GO: exit()
-
-pose = read_3964R_pose()
-print(f"Position de départ : {pose}")
-
-StartMeasure(DEVICE_ID)
-
-done = read_3964R_single_char()
-
-while done != DONE:
+while True:
+    go = read_3964R_single_char()
+    if go != GO:
+        break
+    pose = read_3964R_pose()
+    print(f"Position de départ : {pose}")
+    StartMeasure(DEVICE_ID)
     done = read_3964R_single_char()
+    StopMeasure(DEVICE_ID)
 
-StopMeasure(DEVICE_ID)
+    point_cloud = GetBatchProfileAdvance(DEVICE_ID, 100, 1000, -yStep)
 
+    base_outil_dans_base_profilo = get_htm(pose.x, pose.y, pose.z, pose.a, pose.b, pose.c)
+    base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
+    base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_base_profilo
 
-NB_PROF_PAR_LOT = 250
-LIM_NB_PROF = 1000
-yStep = 0.1
+    points_dans_base_outil = apply_htm(base_point_cloud_dans_base_outil, point_cloud)
 
-cloud = GetBatchProfileAdvance(DEVICE_ID, NB_PROF_PAR_LOT, LIM_NB_PROF, -yStep)
+    for item in points_dans_base_outil:
+        f.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
 
-
-# Visualisation 3D du profile
-FILE_NAME = "nuage.txt"
-SCRIPT_DIR = os.path.dirname(__file__)
-
-f = open(FILE_NAME, 'w')
-for item in cloud:
-    f.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
 f.close()
+CommClose(DEVICE_ID)
+Finalize()
 
 # file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
 # pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
 # o3d.visualization.draw_geometries([pcd])
 
-CommClose(DEVICE_ID)
-Finalize()

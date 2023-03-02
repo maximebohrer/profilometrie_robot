@@ -12,7 +12,7 @@ les_z = []
 for line in f:
     if k % 100 == 0:
         x, y, z = line.strip().split('\t')
-        les_z.append(float(x))
+        les_z.append(float(z))
         abs.append(k)
     k += 1
 

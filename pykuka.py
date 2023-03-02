@@ -60,6 +60,7 @@ def read_3964R_data_buffer():
     bcc = s.read()[0]                             # read the BCC
     s.write(bytes([DLE]))                         # write DLE
     if bcc != calculate_bcc(payload, 0):
+        print(payload)
         raise Exception("Transmission error")     # throw error if received BCC does not match calculated BCC
     return payload[:-2]                           # strip DLE and ETX and return the payload
 
