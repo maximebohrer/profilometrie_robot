@@ -40,5 +40,5 @@ TODO List
 - vérifier les transformations 3d avec kuka sim pro
 - refaire la pièce rouge
 
-test
-test
+Pour aller plus loin :
+- Système de calibration automatique (cf "base_point_cloud_dans_base_profilo = get_htm(0, 0, -170, 0, 0, 0)") afin de déterminer les 6 paramètres pour que les faces concordent parfaitement
