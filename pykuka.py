@@ -71,6 +71,10 @@ def read_3964R_pose():
     """Read a buffer from the robot using the 3964R protocol, and convert it to a pose. Block until the pose is received. The conversion is done by the from_string method of the Pose class: the buffer must consist of six double values separated by spaces. This function must be used when the SEND function is called in the robot program."""
     return Pose.from_string(read_3964R_data_buffer().decode('utf-8'))
 
+def read_3964R_single_char():
+    """Read a buffer from the robot using the 3964R protocol, and return the first char sent. Block until the char is received. This function must be used when the SEND_CHAR function is called in the robot program."""
+    return read_3964R_data_buffer()[0]
+
 def send_3964R_data_buffer(input_bytes):
     """Send a byte buffer to the robot using the 3964R protocol."""
     s.write(bytes([STX]))                         # send STX until we get DLE
