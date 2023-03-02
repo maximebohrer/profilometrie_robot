@@ -260,7 +260,7 @@ def GetMeasurementValue(deviceID):
 	return 0
 
 def ProfileDataToPointCloud(profileData, y, xStart, xStep):
-	return [[(xStart + i * xStep) * RESOLUTION, y, profileData[i] * RESOLUTION] for i in range(len(profileData)) if -48 < profileData[i] * RESOLUTION < 48]
+	return [[(xStart + i * xStep) * RESOLUTION, y, -profileData[i] * RESOLUTION] for i in range(len(profileData)) if -48 < profileData[i] * RESOLUTION < 48]
 
 def GetProfileAdvance(deviceID):
 	pProfileInfo = LJV7IF_PROFILE_INFO()               # (OUT) The profile information for the acquired profiles   # TODO utiliser les informations contenues dans cette structure
