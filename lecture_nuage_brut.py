@@ -1,8 +1,15 @@
 import os
 import open3d as o3d
 import numpy as np
+from pykuka import Pose
 
-FILE_NAME = "data/nuage.txt"
+f_brut = open("data/nuage_brut.txt")
+for i in range(5):
+    print(f_brut.readline())
+
+exit()
+
+FILE_NAME = "nuage.txt"
 SCRIPT_DIR = os.path.dirname(__file__)
 
 file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
