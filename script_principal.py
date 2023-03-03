@@ -40,7 +40,7 @@ while True:
 
     points_dans_base_outil = apply_htm(base_point_cloud_dans_base_outil, point_cloud)
 
-    f_brut.write(pose.to_string())
+    f_brut.write(pose.to_string() + "\n")
     for item in points_dans_base_outil:
         f.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
         f_brut.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
