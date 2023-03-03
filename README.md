@@ -42,3 +42,4 @@ TODO List
 
 Pour aller plus loin :
 - Système de calibration automatique (cf "base_point_cloud_dans_base_profilo = get_htm(0, 0, -170, 0, 0, 0)") afin de déterminer les 6 paramètres pour que les faces concordent parfaitement
+- Réaliser le scan des 4 premières faces en une seule fois en faisant tourner le cube devant le profilo
