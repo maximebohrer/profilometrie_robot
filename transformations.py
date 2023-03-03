@@ -26,12 +26,12 @@ def Rz(a: float):
                       [0,         0,          1]])
 
 def get_htm(x: float, y: float, z: float, a: float, b: float, c: float) -> np.matrix:
-    """Get the homogenous transformation matrix from the x, y, z, a, b, c of the robot"""
+    """Get the homogenous transformation matrix from the x, y, z, a, b, c of the robot, x, y and z are in mm, a, b and c in degrees."""
     rotation_matrix = Rz(np.radians(a)) * Ry(np.radians(b)) * Rx(np.radians(c))                              # this expression depends on the robot (alpha = a, beta = b, gamma = c)
     return np.vstack([np.hstack([rotation_matrix, np.array([[x], [y], [z]])]), np.array([[0, 0, 0, 1]])])    # construction of the homogenous transformation matrix
 
 def apply_htm(htm: np.matrix, points: np.ndarray) -> np.ndarray:
-    """Apply the homogenous transformation matrix to a list of points"""
+    """Apply the homogenous transformation matrix to a list of points."""
     transpose = np.matrix(points).T                                    # transpose the array so that the points are columns
     with_ones = np.vstack([transpose, np.ones(transpose.shape[1])])    # adding a row of ones for the next calculation
     res = htm * with_ones                                              # applying the homogenous transformation matrix to the list of points
