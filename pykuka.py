@@ -1,5 +1,5 @@
 import serial
-s = serial.Serial(port="COM1", baudrate=9600, bytesize=8, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE) # TODO s=serial.Serial() et créer une fonction initilize(port)
+s = serial.Serial() # TODO
 
 # characters used to communicate
 DLE = 16
@@ -116,3 +116,10 @@ def get_pose():
     """Ask the robot to send back its pose, return the pose. This function is only used when the PC2KUKA program is running on the robot, which can read and execute this order."""
     send_3964R_single_char(POS)                   # send POS signal
     return read_3964R_pose()                      # read and return pose
+
+def initialize(port):
+    global s
+    s = serial.Serial(port=port, baudrate=9600, bytesize=8, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE) # TODO s=serial.Serial() et créer une fonction initilize(port)
+
+def finalize():
+    s.close()

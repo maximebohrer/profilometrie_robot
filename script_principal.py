@@ -15,6 +15,7 @@ yStep = vitesse_robot * 1000 / frequence_profilo # mm/s
 base_point_cloud_dans_base_profilo = get_htm(-2.5, -10, -170, 0, 0, 0)
 
 Initialize(debug = True)
+initialize("COM1")
 GetVersion()
 EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
@@ -50,6 +51,7 @@ while True:
 f.close()
 CommClose(DEVICE_ID)
 Finalize()
+finalize()
 
 # file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
 # pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
