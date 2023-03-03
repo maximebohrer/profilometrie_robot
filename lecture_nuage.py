@@ -2,6 +2,10 @@ import os
 import open3d as o3d
 import numpy as np
 
+# x selon axe rouge
+# y selon axes rouge et -vert
+# z selon axe -rouge et -vert
+
 FILE_NAME = "data/nuage.txt"
 SCRIPT_DIR = os.path.dirname(__file__)
 
