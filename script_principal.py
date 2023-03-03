@@ -25,10 +25,10 @@ f = open("data/nuage.txt", 'w')
 f_brut = open("data/nuage_brut.txt", 'w')
 
 while True:
+    # Start measure if Kuka at his "HOME" point
     go = read_3964R_single_char()
-    if go != GO:
-        break
-    pose = read_3964R_pose()
+    if go != GO: break
+    pose = read_3964R_pose() # Get starting point
     print(f"Position de départ : {pose}")
     StartMeasure(DEVICE_ID)
     done = read_3964R_single_char()
@@ -48,6 +48,9 @@ while True:
         f_brut.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
     f_brut.write("**********\n")
 
+    # Batch treatment finished, send done to Kuka
+    send_3964R_single_char(DONE)
+
 f.close()
 CommClose(DEVICE_ID)
 Finalize()
@@ -56,4 +59,3 @@ finalize()
 # file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
 # pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
 # o3d.visualization.draw_geometries([pcd])
-
