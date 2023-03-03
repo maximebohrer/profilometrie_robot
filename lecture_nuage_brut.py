@@ -1,38 +1,40 @@
+import serial
+serial.Serial()
+
 import os
 import open3d as o3d
 import numpy as np
 from pykuka import Pose
+import transformations as trans
 
-f_brut = open("data/nuage_brut.txt")
-for i in range(5):
-    print(f_brut.readline())
+base_point_cloud_dans_base_profilo = trans.get_htm(-2.5, -10, -170, 0, 0, 0)
 
-exit()
+f_brut = open("data/nuage_brut.txt", 'r')
+f = open("data/nuage.txt", 'w')
 
-FILE_NAME = "nuage.txt"
-SCRIPT_DIR = os.path.dirname(__file__)
+line = f_brut.readline().strip()
+while line != "":
+    pose = Pose.from_string(line)
+    face = []
+    line = f_brut.readline().strip()
 
-file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
+    while line != "**********":
+        split = line.split("\t")
+        face.append([float(split[0]), float(split[1]), float(split[2])])
+        line = f_brut.readline().strip()
+    
+    base_outil_dans_base_profilo = trans.get_htm(pose.x, pose.y, pose.z, pose.a, pose.b, pose.c)
+    base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
+    base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_base_profilo
+    
+    points_dans_base_outil = trans.apply_htm(base_point_cloud_dans_base_outil, face)
 
-# Chargement du nuage de points
-pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
+    for item in points_dans_base_outil:
+        f.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
 
-# Création de la boîte englobante
-bbox = pcd.get_axis_aligned_bounding_box()
+    line = f_brut.readline().strip()
 
-# Création de l'objet représentant les axes
-mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size = 16, origin = [0, 0, 0])
+f.close()
 
-# Transformation de la boîte englobante pour représenter les axes
-# mesh_frame.rotate(np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]), center = [0, 0, 0])
-# mesh_frame.translate([bbox.max_bound[0], bbox.max_bound[1], bbox.max_bound[2]])
-
-# Création de la fenêtre de visualisation et ajout des géométries
-visualizer = o3d.visualization.Visualizer()
-visualizer.create_window()
-
-visualizer.add_geometry(pcd)
-visualizer.add_geometry(mesh_frame)
-
-# Affichage de la fenêtre de visualisation
-visualizer.run()
+# visualiser nuage
+import lecture_nuage
