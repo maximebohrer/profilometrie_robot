@@ -11,7 +11,7 @@ PORT        = 24691
 PROGRAM     = 8
 vitesse_robot       = 0.0065 # m/s
 frequence_profilo   = 50 # Hz
-yStep = vitesse_robot * 1000 / frequence_profilo # mm/s
+yStep = vitesse_robot * 1000 / frequence_profilo # mm
 base_point_cloud_dans_base_profilo = get_htm(-2.5, -10, -170, 0, 0, 0)
 
 Initialize(debug = True)
@@ -43,7 +43,7 @@ while True:
     points_dans_base_outil = apply_htm(base_point_cloud_dans_base_outil, point_cloud)
 
     f_brut.write(pose.to_string() + "\n")
-    for i in len(point_cloud):
+    for i in range(len(point_cloud)):
         f.write(str(points_dans_base_outil[i][0]) + "\t" + str(points_dans_base_outil[i][1]) + "\t" + str(points_dans_base_outil[i][2]) + "\n")
         f_brut.write(str(point_cloud[i][0]) + "\t" + str(point_cloud[i][1]) + "\t" + str(point_cloud[i][2]) + "\n")
     f_brut.write("**********\n")
