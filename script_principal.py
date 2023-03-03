@@ -18,7 +18,8 @@ Initialize(debug = True)
 GetVersion()
 EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
-f = open("nuage.txt", 'w')
+f = open("data/nuage.txt", 'w')
+f_brut = open("data/nuage_brut.txt", 'w')
 
 while True:
     go = read_3964R_single_char()
@@ -38,8 +39,11 @@ while True:
 
     points_dans_base_outil = apply_htm(base_point_cloud_dans_base_outil, point_cloud)
 
+    f_brut.write(pose.to_string())
     for item in points_dans_base_outil:
         f.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
+        f_brut.write(str(item[0]) + "\t" + str(item[1]) + "\t" + str(item[2]) + "\n")
+    f_brut.write("**********\n")
 
 f.close()
 CommClose(DEVICE_ID)
