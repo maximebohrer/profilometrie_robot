@@ -19,6 +19,8 @@ initialize("COM1")
 GetVersion()
 EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
+send_3964R_single_char(GO)
+
 f = open("data/nuage.txt", 'w')
 f_brut = open("data/nuage_brut.txt", 'w')
 
