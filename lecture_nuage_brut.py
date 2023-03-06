@@ -56,6 +56,7 @@ epsylon = 10
 # créer une figure 3D
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
+ax.set_proj_type('ortho')
 
 # adjust the main plot to make room for the sliders
 fig.subplots_adjust(bottom=0.25)
@@ -68,13 +69,13 @@ ax.set_zlabel('Z Label')
 def draw_graph(x, y, z, a, b, c):
     # calculate cube
     base_point_cloud_dans_base_profilo = tf.get_htm(x, y, z, a, b, c)
-    cube = np.empty((0,3))
+    #cube = np.empty((0,3))
     for f in faces:
         base_outil_dans_base_profilo = tf.get_htm(f.x, f.y, f.z, f.a, f.b, f.c)
         base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
         base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_base_profilo
         f.points_dans_base_outil = tf.apply_htm(base_point_cloud_dans_base_outil, f.points)
-        cube = np.append(cube, f.points_dans_base_outil, axis=0)
+        #cube = np.append(cube, f.points_dans_base_outil, axis=0)
 
     # draw cube
     colors = ["red", "green", "blue", "darkorange", "purple", "darkcyan"]
