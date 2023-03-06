@@ -52,6 +52,7 @@ while True:
     send_3964R_single_char(DONE)
 
 f.close()
+f_brut.close()
 CommClose(DEVICE_ID)
 Finalize()
 finalize()
