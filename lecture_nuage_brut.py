@@ -7,7 +7,6 @@ from matplotlib.widgets import Slider, Button
 from mpl_toolkits.mplot3d import Axes3D
 
 f_brut = open("data/nuage_brut.txt", 'r')
-#f = open("data/nuage.txt", 'w')
 
 class Face:
     def __init__(self, x, y, z, a, b, c, points):
@@ -34,15 +33,6 @@ while line != "":
         line = f_brut.readline().strip()
 
     line = f_brut.readline().strip()
-
-#f.close()
-
-# x_ini = -7.2
-# y_ini = -8.7
-# z_ini = -168.58
-# a_ini = -1.53
-# b_ini = -3.46
-# c_ini = 0.1
 
 x_ini = -2.5
 y_ini = -10
