@@ -27,25 +27,26 @@ while line != "":
 
     while line != "**********":
         split = line.split("\t")
-        if i % 100 == 0:
+        if i % 1 == 0:
             face.points.append([float(split[0]), float(split[1]), float(split[2])])
         i += 1
         line = f_brut.readline().strip()
 
     line = f_brut.readline().strip()
 
-x_ini = -2.5
-y_ini = -10
-z_ini = -170
-a_ini = 0
-b_ini = 0
-c_ini = 0
+x_ini = 6.23
+y_ini = -7.07
+z_ini = -168.25
+a_ini = -1.5
+b_ini = -1.17
+c_ini = -1.2
 
 epsylon = 10
 
 # créer une figure 3D
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
+ax.set_proj_type('ortho')
 
 # adjust the main plot to make room for the sliders
 fig.subplots_adjust(bottom=0.25)
@@ -162,11 +163,12 @@ def f_sauvegarder_valeurs(event):
     x_ini, y_ini, z_ini, a_ini, b_ini, c_ini = x_slider.val, y_slider.val, z_slider.val, a_slider.val, b_slider.val, c_slider.val
     create_sliders()
 
-    with open("nuage_pour_les_gars.txt", 'w') as f:
+    with open("data/nuage_pour_les_gars.txt", 'w') as f:
         for face in faces:
             for point in face.points_dans_base_outil:
                 f.write(f"{point[0]}\t{point[1]}\t{point[2]}\n")
 
 button_sauvegarder_valeurs.on_clicked(f_sauvegarder_valeurs)
 
-plt.show()
+#plt.show()
+f_sauvegarder_valeurs(0)
