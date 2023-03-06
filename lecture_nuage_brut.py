@@ -7,7 +7,7 @@ from matplotlib.widgets import Slider, Button
 from mpl_toolkits.mplot3d import Axes3D
 
 f_brut = open("data/nuage_brut.txt", 'r')
-f = open("data/nuage.txt", 'w')
+#f = open("data/nuage.txt", 'w')
 
 class Face:
     def __init__(self, x, y, z, a, b, c, points):
@@ -28,21 +28,29 @@ while line != "":
 
     while line != "**********":
         split = line.split("\t")
-        if i % 50 == 0:
+        if i % 100 == 0:
             face.points.append([float(split[0]), float(split[1]), float(split[2])])
         i += 1
         line = f_brut.readline().strip()
 
     line = f_brut.readline().strip()
 
-f.close()
+#f.close()
 
-x_ini = -58
-y_ini = -8.7
-z_ini = -168.58
-a_ini = -5.02
-b_ini = -3.46
-c_ini = 0.1
+# x_ini = -7.2
+# y_ini = -8.7
+# z_ini = -168.58
+# a_ini = -1.53
+# b_ini = -3.46
+# c_ini = 0.1
+
+x_ini = -2.5
+y_ini = -10
+z_ini = -170
+a_ini = 0
+b_ini = 0
+c_ini = 0
+
 epsylon = 10
 
 # créer une figure 3D
@@ -72,7 +80,7 @@ def draw_graph(x, y, z, a, b, c):
     colors = ["red", "green", "blue", "darkorange", "purple", "darkcyan"]
     ax.clear()
     for i, f in enumerate(faces):
-        ax.scatter(f.points_dans_base_outil[:, 0], f.points_dans_base_outil[:, 1], f.points_dans_base_outil[:, 2], marker='.', s=2, c=colors[i % len(colors)])
+        ax.scatter(f.points_dans_base_outil[:, 0], f.points_dans_base_outil[:, 1], f.points_dans_base_outil[:, 2], marker='.', s=4, c=colors[i % len(colors)])
     ax.set_box_aspect(list(map(lambda lim3d: lim3d[1] - lim3d[0], [ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])))
     fig.canvas.draw_idle()
 
