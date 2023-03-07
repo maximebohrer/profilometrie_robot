@@ -27,19 +27,19 @@ while line != "":
 
     while line != "**********":
         split = line.split("\t")
-        if i % 1 == 0:
+        if i % 100 == 0:
             face.points.append([float(split[0]), float(split[1]), float(split[2])])
         i += 1
         line = f_brut.readline().strip()
 
     line = f_brut.readline().strip()
 
-x_ini = 6.23
-y_ini = -7.07
-z_ini = -168.25
-a_ini = -1.5
-b_ini = -1.17
-c_ini = -1.2
+x_ini = -0.02
+y_ini = 9.5
+z_ini = -162.07
+a_ini = -2.37
+b_ini = -0.96
+c_ini = -1.49
 
 epsylon = 10
 
@@ -170,5 +170,5 @@ def f_sauvegarder_valeurs(event):
 
 button_sauvegarder_valeurs.on_clicked(f_sauvegarder_valeurs)
 
-#plt.show()
-f_sauvegarder_valeurs(0)
+plt.show()
+#f_sauvegarder_valeurs(0)
