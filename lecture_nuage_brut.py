@@ -34,12 +34,12 @@ while line != "":
 
     line = f_brut.readline().strip()
 
-x_ini = -2.5
-y_ini = -10
-z_ini = -170
-a_ini = 0
-b_ini = 0
-c_ini = 0
+x_ini = -0.02
+y_ini = 9.5
+z_ini = -162.07
+a_ini = -2.37
+b_ini = -0.96
+c_ini = -1.49
 
 epsylon = 10
 
@@ -163,7 +163,7 @@ def f_sauvegarder_valeurs(event):
     x_ini, y_ini, z_ini, a_ini, b_ini, c_ini = x_slider.val, y_slider.val, z_slider.val, a_slider.val, b_slider.val, c_slider.val
     create_sliders()
 
-    with open("nuage_pour_les_gars.txt", 'w') as f:
+    with open("data/nuage_pour_les_gars.txt", 'w') as f:
         for face in faces:
             for point in face.points_dans_base_outil:
                 f.write(f"{point[0]}\t{point[1]}\t{point[2]}\n")
@@ -171,3 +171,4 @@ def f_sauvegarder_valeurs(event):
 button_sauvegarder_valeurs.on_clicked(f_sauvegarder_valeurs)
 
 plt.show()
+#f_sauvegarder_valeurs(0)

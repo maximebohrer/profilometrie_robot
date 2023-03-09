@@ -12,7 +12,7 @@ PROGRAM     = 8
 vitesse_robot       = 0.0065 # m/s
 frequence_profilo   = 50 # Hz
 yStep = vitesse_robot * 1000 / frequence_profilo # mm
-base_point_cloud_dans_base_profilo = get_htm(-2.5, -10, -170, 0, 0, 0)
+base_point_cloud_dans_base_profilo = get_htm(+0, +15, -155, 0, 0, 0)
 
 Initialize(debug = True)
 initialize("COM1")
@@ -52,6 +52,7 @@ while True:
     send_3964R_single_char(DONE)
 
 f.close()
+f_brut.close()
 CommClose(DEVICE_ID)
 Finalize()
 finalize()

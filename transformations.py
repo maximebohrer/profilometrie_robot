@@ -42,20 +42,12 @@ def apply_htm(htm: np.matrix, points: np.ndarray) -> np.ndarray:
     return np.array(np.delete(res, 3, axis=0).T)                       # remove the last row and transpose again
 
 if __name__=="__main__":
-    # x = -0.81
-    # y = 501.10
-    # z = 499.84
-    # a = -169.5
-    # b = 50.62
-    # c = 95.50
-    # mat = get_htm(x, y, z, a, b, c)
-    # point_in_world = apply_htm(mat, np.array([0,10,100]))
-    # print(point_in_world)
-
-    base2_dans_base1 = get_htm(2,4,9,40,20,15)
-    base1_dans_base0 = get_htm(1,2,3,10,15,20)
-    base2_dans_base0 = base1_dans_base0 * base2_dans_base1
-
-    print(base2_dans_base0)
-    print()
-    print(get_htm(2+1, 4+2, 9+3, 40+10, 20+15, 15+20))
+    x = -131.86
+    y = 517.30
+    z = 599.15
+    a = -136.66
+    b = 23.74
+    c = 67.92
+    tool_in_world = get_htm(x, y, z, a, b, c)
+    point_in_world = apply_htm(tool_in_world, np.array([-37.17,-40.58,66.03]))
+    print(point_in_world)
