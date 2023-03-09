@@ -51,11 +51,33 @@ La communication avec le profilomètre s'effectue grâce à au fichier `LJV7_IF.
 Transformations 3D
 ------------------
 
+Le fichier `transformations.py` contient des fonctions permettant de faire des changements de base en robotique. Des matrices de transformations homogènes sont utilisées.
+
+La fonction `get_htm` permet de calculer une matrice de transformation homogène à partir à partir de 6 paramètres x, y, z, a, b, c qui représentent la position et l'orientation d'une base B dans une base A. Cette matrice permettra ensuite de convertir des points dont les coordonnées sont exprimées dans la base B aux mêmes points dont les coordonnées sont exprimées dans la base A. Cette fonction utilise des matrices `numpy`, qui peuvent être multipliées entres elles et inversées. Inverser une matrice permet de passer de la base A à B au lieu de passer de la base B à A. Multiplier des matrices entres elles permet d'enchainer les changements de base. La dernière matrice du produit correspond au premier changement de base.
+
+La fonction `apply_htm` prend en argument une matrice de transformation homogène et une liste de points, et applique la transformation. Les points ne peuvent en effet pas être multipliés directement à la matrice, il faut lui ajouter une 4ème coordonnée, et les exprimer sous forme de matrice colonne. Cette fonction se charge de ceci. Les points doivent être passés à la fonction sous la forme d'un tableau `numpy` de la forme [[x, y, z], [x, y, z], ...].
+
+Attention : les paramètres de rotation a, b, et c ne signifient pas toujours la même chose pour les différents modèles de robot. Pour que le projet fonctionne, il faut être sûr du calcul de la matrice de rotation. Par exemple, pour le robot utilisé, la matrice de rotation est `rotation_matrix = Rz(a) * Ry(b) * Rx(c)`, c'est-à-dire qu'un point est décrit par une rotation autour de x d'angle c, puis autour de y d'angle b, puis autour de z d'angle a, puis par la translation x, y, z. D'autres conventions existent cependant, comme la convention ZYZ (`rotation_matrix = Rz(a) * Ry(b) * Rz(c)`). Cette expression, qui se trouve dans la fonction `get_htm`, est donc à modifier en fonction du robot utilisé, et à déterminer à partir de sa documentation ou en faisant différents essais. Pour savoir si la matrice est correcte, suivre ce protocole :
+- Créer une nouvelle base dans le robot avec une position et une orientation aléatoire.
+- Relever les paramètres x, y, z, a, b, c de cette base, et les utiliser pour créer une matrice de transformation homogène avec `get_htm`. Cette matrice permettra donc de passer des coordonnées de cette base aux coordonnées de la base world du robot.
+- Emmener l'outil à une position et une orientation aléatoire.
+- Affichier sur le robot et relever les coordonnées x, y, z de ce point dans la base nouvellement créée, et les exprimer dans la base world grâce à la fonction `apply_htm`.
+- Afficher sur le robot les coordonnées de ce même point, mais dans la base world (base principale, base 0) et comparer avec les résultats obtenus. Si tout correspond, alors la matrice de rotation est juste. Sinon, en tester une autre.
+
 Protocole de calibration
 ------------------------
 
+La reconstitution du scan 3D à partir des différents profils repose sur le fait que la base "profilometre" du robot soit parfaitement alignée avec la base du nuage de points renvoyé par le profilomètre. En effet, si les points renvoyés par le profilomètre peuvent être considérés comme étant dans la base "profilometre" du robot (ce qui est le cas si les deux bases sont parfaitement alignées), alors un changement de base peut permettre d'exprimer ces points dans le repère de l'outil. La pièce scannée étant fixe dans le repère de l'outil, passer tous les profils dans la base de l'outil permet automatiquement de reconstituer la pièce. Ces changements de bases sont fait en Python grâce aux coordonnées (de l'outil pince dans le repère profilometre) renvoyés par le robot avant chaque profil.
+
+Le repère du nuage de points renvoyé par le profilomètre est représenté dans cette image :
+
+
 Protocole en cas de changement de robot
 ---------------------------------------
+
+Pour continuer d'utiliser le projet avec un robot différent, deux étapes sont nécéssaire :
+- S'assurer que la matrice de rotation soit calculée correctement, ou modifier cette dernière. Pour cela, suivre le protocole décrit dans la partie [Transformations 3D](#transformations-3d).
+- Effectuer une calibration du système en suivant le protocole de la partie [Protocole de calibration](#protocole-de-calibration)
 
 Perspectives d'amélioration
 ---------------------------

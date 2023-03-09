@@ -41,13 +41,13 @@ while line != "":
 # b_ini = -0.01
 # c_ini = -1.0
 
-print("")
-x_ini = float(input("X actuel de la base profilometre : "))
-y_ini = float(input("Y actuel de la base profilometre : "))
-z_ini = float(input("Z actuel de la base profilometre : "))
-a_ini = float(input("A actuel de la base profilometre : "))
-b_ini = float(input("B actuel de la base profilometre : "))
-c_ini = float(input("C actuel de la base profilometre : "))
+print("Entrez ci-dessous la position et l'orientation actuelles de la base \"profilometre\" du robot, c'est-à-dire lorsque le dernier scan a été effectué. Le but est ensuite de faire varier ces paramètres pour déplacer la base \"profilometre\" sur l'origine du nuage de points du profilomètre, afin que les positions renvoyées par le robot donnent lieu à des changements de base corrects. Une simulation 3D permet de visualiser l'effet que le changement aurait sur le nuage de points. Une fois que le scan est proprement reconstitué, les nouveaux paramètres de base peuvent être entrés dans le robot.")
+x_ini = float(input("X actuel de la base \"profilometre\" : "))
+y_ini = float(input("Y actuel de la base \"profilometre\" : "))
+z_ini = float(input("Z actuel de la base \"profilometre\" : "))
+a_ini = float(input("A actuel de la base \"profilometre\" : "))
+b_ini = float(input("B actuel de la base \"profilometre\" : "))
+c_ini = float(input("C actuel de la base \"profilometre\" : "))
 
 ancienne_base_profilo_dans_monde = tf.get_htm(x_ini, y_ini, z_ini, a_ini, b_ini, c_ini) # base actuelle enregistrée dans le robot, c'est-à-dire celle avec laquelle les points ont été enregistrés
 monde_dans_ancienne_base_profilo = ancienne_base_profilo_dans_monde.I
@@ -187,6 +187,6 @@ button_sauvegarder_valeurs.on_clicked(f_sauvegarder_valeurs)
 
 plt.show()
 
-print("Nouvelles valeurs à mettre dans la base profilometre du robot :")
-print(x_slider.val, y_slider.val, z_slider.val, a_slider.val, b_slider.val, c_slider.val)
+print("Voici les nouvelles valeurs des paramètres de la base \"profilometre\" à entrer dans le robot :")
+print(f"X = {x_slider.val}; Y = {y_slider.val}, Z = {z_slider.val}, A = {a_slider.val}, B = {b_slider.val}, C = {c_slider.val}")
 #f_sauvegarder_valeurs(0)
