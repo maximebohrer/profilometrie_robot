@@ -97,7 +97,7 @@ rest.colors = o3d.utility.Vector3dVector(colors[:, :3])
 
 # o3d.visualization.draw_geometries([segments.values()])
 # o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)]+[rest])
-o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] + [rest])
+#o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)]+[rest],zoom=0.3199,front=[0.30159062875123849, 0.94077325609922868, 0.15488309545553303],lookat=[-3.9559999108314514, -0.055000066757202148, -0.27599999308586121],up=[-0.044411423633999815, -0.138726419067636, 0.98753122516983349])
 # o3d.visualization.draw_geometries([rest])
 exit()
 """# BONUS: Small drawing function for Colab"""
