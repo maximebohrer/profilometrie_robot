@@ -85,8 +85,6 @@ def draw_graph(x, y, z, a, b, c):
     ax.clear()
     for i, f in enumerate(faces):
         ax.scatter(f.points_dans_base_outil[:, 0], f.points_dans_base_outil[:, 1], f.points_dans_base_outil[:, 2], marker='.', s=4, c=colors[i % len(colors)])
-
-        print(i, min(np.array(f.points)[:,0]), max(np.array(f.points)[:,1]), max(np.array(f.points)[:,2]))
     ax.set_box_aspect(list(map(lambda lim3d: lim3d[1] - lim3d[0], [ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])))
     fig.canvas.draw_idle()
 
