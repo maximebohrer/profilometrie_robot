@@ -1,62 +1,81 @@
-import time
-from pykuka import *
-from pykeyence import *
-from transformations import *
+import pykuka as kuka
+import pykeyence as profilo
+import transformations as tf
 # import open3d as o3d
 import os
+import random as rd
 
 DEVICE_ID   = 0
 IP_ADDRESS  = "10.2.34.1"
 PORT        = 24691
 PROGRAM     = 8
-vitesse_robot       = 0.0065 # m/s
-frequence_profilo   = 50 # Hz
+vitesse_robot       = 0.0130 # m/s
+frequence_profilo   = 100 # Hz
 yStep = vitesse_robot * 1000 / frequence_profilo # mm
 #base_point_cloud_dans_base_profilo = get_htm(+0, +15, -155, 0, 0, 0)
-base_point_cloud_dans_base_profilo = get_htm(0, 0, 0, 0, 0, 0)
+base_point_cloud_dans_base_profilo = tf.get_htm(0, 0, 0, 0, 0, 0)
 
-Initialize(debug = True)
-initialize("COM1")
-GetVersion()
-EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
+profilo.Initialize(debug = True)
+kuka.initialize("COM1")
+profilo.GetVersion()
+profilo.EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 
-send_3964R_single_char(GO)
+compteur_de_cube = 0
 
-f = open("data/nuage.txt", 'w')
-f_brut = open("data/nuage_brut.txt", 'w')
+while True: # Pour chacun des cubes sur le convoyeur
+    input("Si cube à récupérer sur le convoyeur, appuyez sur 'Entrée'")
+    kuka.send_3964R_single_char(kuka.GO)
+    # Le Kuka part récupérer le cube
+    kuka.send_3964R_single_char(kuka.GO) # Ce GO n'est écouté par le Kuka que quand il a récupéré le cube
 
-while True:
-    # Start measure if Kuka at his "HOME" point
-    go = read_3964R_single_char()
-    if go != GO: break
-    pose = read_3964R_pose() # Get starting point
-    print(f"Position de départ : {pose}")
-    StartMeasure(DEVICE_ID)
-    done = read_3964R_single_char()
-    StopMeasure(DEVICE_ID)
+    f = open(f"data/nuage{compteur_de_cube}.txt", 'w')
+    f_brut = open("data/nuage_brut.txt", 'w')
 
-    point_cloud = GetBatchProfileAdvance(DEVICE_ID, 100, 1000, -yStep)
+    while True: # Pour scanner un cube
+        # Start measure if Kuka at his "HOME" point
+        go = kuka.read_3964R_single_char()
+        if go != kuka.GO: break
+        pose = kuka.read_3964R_pose() # Get starting point
+        print(f"Position de départ : {pose}")
+        profilo.StartMeasure(DEVICE_ID)
+        done = kuka.read_3964R_single_char()
+        profilo.StopMeasure(DEVICE_ID)
 
-    base_outil_dans_base_profilo = get_htm(pose.x, pose.y, pose.z, pose.a, pose.b, pose.c)
-    base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
-    base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_base_profilo
+        point_cloud = profilo.GetBatchProfileAdvance(DEVICE_ID, 100, 1000, -yStep)
 
-    points_dans_base_outil = apply_htm(base_point_cloud_dans_base_outil, point_cloud)
+        base_outil_dans_base_profilo = tf.get_htm(pose.x, pose.y, pose.z, pose.a, pose.b, pose.c)
+        base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
+        base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_base_profilo
 
-    f_brut.write(pose.to_string() + "\n")
-    for i in range(len(point_cloud)):
-        f.write(str(points_dans_base_outil[i][0]) + "\t" + str(points_dans_base_outil[i][1]) + "\t" + str(points_dans_base_outil[i][2]) + "\n")
-        f_brut.write(str(point_cloud[i][0]) + "\t" + str(point_cloud[i][1]) + "\t" + str(point_cloud[i][2]) + "\n")
-    f_brut.write("**********\n")
+        points_dans_base_outil = tf.apply_htm(base_point_cloud_dans_base_outil, point_cloud)
 
-    # Batch treatment finished, send done to Kuka
-    send_3964R_single_char(DONE)
+        f_brut.write(pose.to_string() + "\n")
+        for i in range(len(point_cloud)):
+            f.write(str(points_dans_base_outil[i][0]) + "\t" + str(points_dans_base_outil[i][1]) + "\t" + str(points_dans_base_outil[i][2]) + "\n")
+            f_brut.write(str(point_cloud[i][0]) + "\t" + str(point_cloud[i][1]) + "\t" + str(point_cloud[i][2]) + "\n")
+        f_brut.write("**********\n")
 
-f.close()
-f_brut.close()
-CommClose(DEVICE_ID)
-Finalize()
-finalize()
+        # Batch treatment finished, send done to Kuka
+        kuka.send_3964R_single_char(kuka.DONE)
+
+    # EXIT received from Kuka
+
+    f.close()
+    f_brut.close()
+
+    piece_conforme = compteur_de_cube % 2 == 0 #rd.random() > 0.5 # A récupérer avec script de Robin et Arnaud
+    print(f"La pièce est conforme : {piece_conforme}")
+
+    if piece_conforme:
+        kuka.send_3964R_single_char(kuka.YES)
+    else:
+        kuka.send_3964R_single_char(kuka.NO)
+
+    compteur_de_cube += 1
+
+profilo.CommClose(DEVICE_ID)
+profilo.Finalize()
+kuka.finalize()
 
 # file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
 # pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
