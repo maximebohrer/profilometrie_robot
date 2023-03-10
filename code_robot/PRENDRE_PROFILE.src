@@ -1,0 +1,44 @@
+&ACCESS RVO1
+&REL 63
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\FunctionVorgabe
+&PARAM EDITMASK = *
+DEFFCT BOOL PRENDRE_PROFILE(HANDLE:OUT, SR_T:OUT, SC_T:OUT, MR_T:OUT, IN_CHAR:OUT)
+EXTFCT BOOL RECV_CHAR(INT:OUT, STATE_T:OUT, STATE_T:OUT, MODUS_T:OUT, CHAR:OUT)
+EXTFCT BOOL SEND(INT:OUT, STATE_T:OUT, STATE_T:OUT, MODUS_T:OUT)
+
+INT HANDLE
+INT OFFSET
+DECL STATE_T SR_T, SC_T
+DECL MODUS_T MR_T
+DECL CHAR IN_CHAR
+REAL TIMEOUT
+DECL BOOL R1
+
+; send GO to PC to start measure with profilo
+R1 = SEND_CHAR(HANDLE, SR_T, SC_T, MR_T, 71)
+
+; send starting position to PC
+R1 = SEND(HANDLE, SR_T, SC_T, MR_T)
+
+; way under profilo during scan
+$STOPNOAPROX=TRUE
+BAS(#VEL_CP, 0.0130)
+BAS(#ACC_CP, 3)
+LIN_REL {Y 100} C_DIS  #BASE
+
+; send DONE
+R1 = SEND_CHAR(HANDLE, SR_T, SC_T, MR_T, 35)
+
+; way back under profilo during batch treatment
+BAS(#VEL_CP, 0.65)
+BAS(#ACC_CP, 1)
+LIN_REL {Y -100} C_DIS  #BASE
+
+; wait for DONE from PC meaning batch treatment finished
+IN_CHAR = " "
+WHILE IN_CHAR <> 35
+   R1 = RECV_CHAR(HANDLE, SR_T, SC_T, MR_T, IN_CHAR)
+ENDWHILE
+
+RETURN TRUE
+ENDFCT
