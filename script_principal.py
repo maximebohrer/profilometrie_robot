@@ -23,7 +23,7 @@ profilo.EthernetOpen(DEVICE_ID, IP_ADDRESS, PORT)
 compteur_de_cube = 0
 
 while True: # Pour chacun des cubes sur le convoyeur
-    input("Si cube à récupérer sur le convoyeur, appuyez sur 'Entrée'")
+    if input("Si cube à récupérer sur le convoyeur, appuyez sur 'Entrée'") == "stop": break
     kuka.send_3964R_single_char(kuka.GO)
     # Le Kuka part récupérer le cube
     kuka.send_3964R_single_char(kuka.GO) # Ce GO n'est écouté par le Kuka que quand il a récupéré le cube

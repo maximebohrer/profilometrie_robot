@@ -7,7 +7,7 @@ from transformations import *
 # y selon axes rouge et -vert
 # z selon axe -rouge et -vert
 
-FILE_NAME = "data/nuage.txt"
+FILE_NAME = "data/nuage0.txt"
 SCRIPT_DIR = os.path.dirname(__file__)
 
 file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
