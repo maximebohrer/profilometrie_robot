@@ -13,10 +13,8 @@ POS = 80         # 'P' means current 'POSITION'
 EXIT = 88        # 'X' means 'EXIT'
 GRAB = 25
 DROP = 27
-PTP = 65         # 'A' means articular
-LIN_SLOW = 83    # 'S' means slow
-LIN_FAST = 70    # 'F' means fast
-SAISIE_BARRIERE = 21
+YES = 89         # 'Y' means yes
+NO = 78          # 'N' means no
 
 class Pose:
     """Represents a pose (position x, y, z, and orientation a, b, c) of the robot."""
