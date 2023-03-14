@@ -84,7 +84,7 @@ Le fichier `Traitement faces.py` permet de traiter et d'analyser un nuage de poi
 
 Cependant, si vous souhaitez directement ouvrir un nuage de points au format `csv`, vous devrez d'abord créer les 2 coordonnées manquantes à partir du numéro des colonnes et des lignes, puis les mettre à l'échelle en fonction des paramètres sélectionnés.
 
-Le fichier `Traitement face` permet aussi de réduire le bruit du nuage de point. Le nuage de point traité est enregistré dans l'arborescence suivante, en format `txt` : `Data/Debug/nuage_filtered_outliers_remoeved_30_2.txt`.
+Le fichier `Traitement face` permet aussi de réduire le bruit du nuage de point. Le nuage de point traité est enregistré dans l'arborescence suivante, en format `txt` : `Data/Debug/nuage_filtered_outliers_removed_30_2.txt`.
 
 Vous pouvez ensuite charger ce nuage de point dans un logiciel comme `Meshlab` afin de modéliser les faces du cubes.
 
