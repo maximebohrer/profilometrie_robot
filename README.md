@@ -65,7 +65,7 @@ Dans la fenêtre `Réglage déclench.`, réglez les paramètres de mesure du pro
 
 Dans la fenêtre `Réglage image.`, réglez les paramètres d'image du profilomètre. Les paramètres sont les suivants :
 - `Mode de réflexion` : Permet d'ajuster les paramètres du laser du profilomètre de sorte à mieux mesurer les refiefs. 
-- `Optimiser réglages` : Le logiciel détermine une succession de réglages possibles afin d'améliore le rendu de l'image. 
+- `Optimiser réglages` : Le logiciel détermine une succession de réglages possibles afin d'optimiser le rendu de l'image. 
 - Enfin, on peut accéder à d'avantages de réglages en cliquant sur `Aller au regl. avancé`. On y trouve des paramètres de `plage de mesure :` c'est la plage de mesure en hauteur et en largeur que le profilomètre peut mesurer. Elle doit être choisie en fonction de la hauteur des pièces à mesurer.
 
 On trouve finalement des options permettant d'appliquer des `filtres de traitement` dans l'onglet `Profil`, mais nous ne l'utilisons pas.
@@ -75,6 +75,15 @@ Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour affi
 - Cliquez sur le bouton `Démarrer lot` pour commencer la mesure en mode lot. Les mesures seront prises en continu jusqu'à ce que le nombre de points de mesure soit atteint ou que l'utilisateur arrête la mesure manuellement en cliquant sur le bouton `Arrêter lot`.
 
 - Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`
+
+
+Visualisation & modélisation 3D 
+-------------------------------
+
+Le fichier Traitement faces.py permet de traiter et d'analyser un nuage de point en format `.txt` dont les 3 coordonées ont déjà été crées. Il utilise la bibliothèque Open3D pour charger et filtrer les données brutes, puis calcule les coins et les faces du cube correspondant à l'objet. Il affiche ensuite les informations sur chaque face, telles que la longueur de chaque côté, l'aire de la face et sa rugosité. Le fichier contient également une fonction pour enregistrer les coordonnées des coins du cube dans un fichier texte, ainsi qu'un code pour afficher le modèle 3D du cube dans une fenêtre matplotlib. Les utilisateurs peuvent donc facilement adapter ce fichier à leur propre projet en modifiant les paramètres de filtrage ou en ajoutant des fonctionnalités supplémentaires. 
+
+Si vous souhaitez cependant directement ouvrir un nuage de point au format `.csv`, il vous faudra d'abord créer les 2 coordonnées manquantes à partir du numéro des colonnes et des lignes, ainsi que mettre à l'échelle selon les paramètres sélectionnés.
+
 
 API Profilomètre
 ----------------
