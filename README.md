@@ -80,7 +80,7 @@ Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour affi
 Visualisation & modélisation 3D 
 -------------------------------
 
-Le fichier `Traitement faces.py` permet de traiter et d'analyser un nuage de point en format `txt` dont les 3 coordonnées ont déjà été crées. Il utilise la bibliothèque Open3D pour charger et filtrer les données brutes, puis calcule les coins et les faces du cube correspondant à l'objet. Il affiche ensuite les informations sur chaque face, telles que la longueur de chaque côté, l'aire de la face et sa rugosité. Le fichier contient également une fonction pour enregistrer les coordonnées des coins du cube dans un fichier texte, ainsi qu'un code pour afficher le modèle 3D du cube dans une fenêtre matplotlib. Les utilisateurs peuvent donc facilement adapter ce fichier à leur propre projet en modifiant les paramètres de filtrage ou en ajoutant des fonctionnalités supplémentaires. 
+Le fichier `Traitement faces.py` permet de traiter et d'analyser un nuage de point en format `txt` dont les 3 coordonnées ont déjà été crées. Il utilise la bibliothèque `Open3D` pour charger et filtrer les données brutes, puis calcule les coins et les faces du cube correspondant à l'objet. Il affiche ensuite les informations sur chaque face, telles que la longueur de chaque côté, l'aire de la face et sa rugosité. Le fichier contient également une fonction pour enregistrer les coordonnées des coins du cube dans un fichier texte, ainsi qu'un code pour afficher le modèle 3D du cube dans une fenêtre `matplotlib`. Les utilisateurs peuvent donc facilement adapter ce fichier à leur propre projet en modifiant les paramètres de filtrage ou en ajoutant des fonctionnalités supplémentaires. 
 
 Cependant, si vous souhaitez directement ouvrir un nuage de points au format `csv`, vous devrez d'abord créer les 2 coordonnées manquantes à partir du numéro des colonnes et des lignes, puis les mettre à l'échelle en fonction des paramètres sélectionnés.
 
@@ -91,7 +91,34 @@ Vous pouvez ensuite charger ce nuage de point dans un logiciel comme `Meshlab` a
 
 Utilisation de Meshlab
 ----------------------
-A remplir : Compute normal set, Point cloud simplification, Surface reconstuction / filling holes...
+- Importation du nuage de points dans `Meshlab` :
+Dans `Meshlab`, ouvrez le nuage de points traité enregistré précédemment au format `.txt`. Pour cela, allez dans le menu `File` et sélectionnez `Open...`.
+
+- Calcul des normales :
+Les normales sont des vecteurs perpendiculaires à chaque point du nuage de points. Elles sont nécessaires pour la méthode de `ball pivoting`. Pour calculer les normales, allez dans le menu `Filters` &gt; `Compute Normals for Point Sets`. Une fenêtre apparaîtra vous permettant de sélectionner les options de calcul. Choisissez `Weighted Average` pour la méthode de calcul des normales et `10` pour le rayon de recherche. Cliquez ensuite sur `Apply`.
+
+- Réduction du bruit :
+Pour améliorer la qualité de la modélisation, vous pouvez réduire le bruit du nuage de points en allant dans le menu `Filters` &gt; `Cleaning and Repairing`. Choisissez l'option `Cleaning: Planar Faces` et sélectionnez une valeur de seuil adaptée à votre nuage de points. Cliquez ensuite sur `Apply`.
+
+- `Ball Pivoting` :
+La méthode de `ball pivoting` permet de reconstituer une surface à partir d'un nuage de points en reliant les points qui sont à proximité les uns des autres. Pour utiliser cette méthode, allez dans le menu `Filters` &gt; `Remeshing, Simplification and Reconstruction` &gt; `Ball Pivoting`. Sélectionnez les options suivantes :
+`Max Radius` : une valeur adaptée à votre nuage de points
+`Min Angle` : une valeur adaptée à votre nuage de points
+`Max Distance` : une valeur adaptée à votre nuage de points
+`Cleaning` : cochez la case `Enable` pour supprimer les triangles inutiles et améliorer la qualité de la surface.
+Cliquez ensuite sur `Apply`.
+
+- Remplissage des trous :
+Si le nuage de points contient des trous, vous pouvez les remplir en utilisant la méthode de `ball pivoting`. Pour cela, allez dans le menu `Filters` &gt; `Remeshing, Simplification and Reconstruction` &gt; `Close Holes`. Sélectionnez les options suivantes :
+`Max Hole Size` : une valeur adaptée à votre nuage de points
+`Self Intersection` : cochez la case `Enable` pour éviter les intersections entre les faces.
+`Use Vertices` : cochez la case `Enable` pour créer de nouveaux points dans les trous.
+`Respect Cutting` : cochez la case `Enable` pour éviter de couper les bords de la surface existante.
+Cliquez ensuite sur `Apply`.
+
+Exportation du modèle :
+Une fois la surface du cube reconstituée et les trous remplis, vous pouvez exporter le modèle en allant dans le menu `File` &gt; `Export Mesh As...`. Choisissez le format d'exportation souhaité (par exemple `.obj`) et enregistrez le fichier.
+En utilisant cette méthode de `ball pivoting`, vous pouvez facilement modéliser les faces d'un cube à partir d'un nuage de points dans `Meshlab`.
 
 
 API Profilomètre
