@@ -9,6 +9,7 @@ Table des matières
 ------------------
 
 - [API Kuka](#api-kuka)
+- [Utilisation du profilomètre](#utilisation-du-profilomètre)
 - [API Profilomètre](#api-profilomètre)
 
 API Kuka
@@ -42,6 +43,38 @@ Le profilomètre a deux modes principaux de fonctionnement :
     - le mode codeur, qui permet de déclencher la prise de chaque prodil sur les changements du codeur incrémental externe qui peut être branché au profilomètre. Ceci est utile si c'est un axe linéaire muni d'un codeur qui fait bouger la pièce devant le profilomètre.
 
 Tous ces paramètres (mode batch, fréquence, pas, nombre de profils) peuvent être régler grâce au bouton `réglage direct`.
+
+
+Configuration du profilomètre
+-----------------------------
+
+Pour configurer le profilomètre Keyence LJ-V7080, on utilise le logiciel `LJ Navigator`. Voici les différentes étapes pour configurer correctement le profilomètre :
+- Connectez le profilomètre à l'ordinateur via un câble USB et allumez le profilomètre.
+- Ouvrez `LJ Navigator`.
+- Dans la fenêtre `Liste de périphériques`, vérifiez que le profilomètre est bien détecté. Si le profilomètre n'apparaît pas, vérifiez la connexion internet ou réinstallez les drivers du profilomètre.
+- Cliquez sur le bouton `Connexion` pour se connecter au profilomètre. Si la connexion échoue, vérifiez que le profilomètre est bien allumé et qu'il est connecté au même réseau.
+- Dans la fenêtre `Réglage rapide`, vérifiez que les paramètres de base sont corrects (par exemple la vitesse de déplacement du profilomètre). Ces paramètres peuvent être modifiés en cliquant sur le bouton `Réglage direct`.
+
+
+
+Dans la fenêtre `Réglage déclench.`, réglez les paramètres de mesure du profilomètre. Les paramètres sont les suivants :
+- `Mode de déclenchement :` Choix du mode de mesure (Voir partie [Utilisation du profilomètre](#utilisation-du-profilomètre))
+- `Fréquence d'échantillonnage :` c'est la fréquence à laquelle les mesures sont effectuées. Plus cette fréquence est élevée, plus la mesure sera précise mais plus le temps de mesure sera long. La fréquence d'échantillonnage doit être choisie en fonction de la précision désirée et du temps de mesure acceptable.
+- `Pas de mesure :` Cela correspond à la distance réelle entre deux points de mesure consécutifs, utilisée pour mettre à l'échelle le nuage de points 3D obtenu. Ce paramètre doit être déterminé avec précision pour garantir la précision de la reconstruction 3D de la pièce.
+- `Nombre de points de mesure :` c'est le nombre de points de mesure qui seront pris. Plus ce nombre est élevé, plus la mesure sera précise mais plus le temps de mesure sera long. Le nombre de points de mesure doit être choisi en fonction de la précision désirée et du temps de mesure acceptable.
+
+Dans la fenêtre `Réglage image.`, réglez les paramètres d'image du profilomètre. Les paramètres sont les suivants :
+- `Mode de réflexion` : Permet d'ajuster les paramètres du laser du profilomètre de sorte à mieux mesurer les refiefs. 
+- `Optimiser réglages` : Le logiciel détermine une succession de réglages possibles afin d'améliore le rendu de l'image. 
+- Enfin, on peut accéder à d'avantages de réglages en cliquant sur `Aller au regl. avancé`. On y trouve des paramètres de `plage de mesure :` c'est la plage de mesure en hauteur et en largeur que le profilomètre peut mesurer. Elle doit être choisie en fonction de la hauteur des pièces à mesurer.
+
+On trouve finalement des options permettant d'appliquer des `filtres de traitement` dans l'onglet `Profil`, mais nous ne l'utilisons pas.
+
+Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour afficher les mesures en temps réel. Les mesures seront affichées sur l'écran du profilomètre et dans la fenêtre `Affichage` de `LJ Navigator`.
+
+- Cliquez sur le bouton `Démarrer lot` pour commencer la mesure en mode lot. Les mesures seront prises en continu jusqu'à ce que le nombre de points de mesure soit atteint ou que l'utilisateur arrête la mesure manuellement en cliquant sur le bouton `Arrêter lot`.
+
+- Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`
 
 API Profilomètre
 ----------------
