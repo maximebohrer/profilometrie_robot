@@ -16,7 +16,6 @@ class Face:
 faces = []
 
 line = f_brut.readline().strip()
-
 while line != "":
     i = 0
     pose = Pose.from_string(line)
@@ -30,13 +29,6 @@ while line != "":
         i += 1
         line = f_brut.readline().strip()
     line = f_brut.readline().strip()
-
-# x_ini = 5.56
-# y_ini = -4.36
-# z_ini = -162.89
-# a_ini = -0.6
-# b_ini = -0.01
-# c_ini = -1.0
 
 print("Entrez ci-dessous la position et l'orientation actuelles de la base \"profilometre\" du robot, c'est-à-dire lorsque le dernier scan a été effectué. Le but est ensuite de faire varier ces paramètres pour déplacer la base \"profilometre\" sur l'origine du nuage de points du profilomètre, afin que les positions renvoyées par le robot donnent lieu à des changements de base corrects. Une simulation 3D permet de visualiser l'effet que le changement aurait sur le nuage de points. Une fois que le scan est proprement reconstitué, les nouveaux paramètres de base peuvent être entrés dans le robot.")
 x_ini = float(input("X actuel de la base \"profilometre\" : "))
@@ -68,14 +60,11 @@ def draw_graph(x, y, z, a, b, c):
     # calculate cube
     nouvelle_base_profilo_dans_monde = tf.get_htm(x, y, z, a, b, c) # nouvelle base profilo, c'est à dire la base du nuage de points, que l'on essaye de trouver
     base_point_cloud_dans_ancienne_base_profilo = monde_dans_ancienne_base_profilo * nouvelle_base_profilo_dans_monde # correction artificielle des points pour l'affichage
-    #base_point_cloud_dans_base_profilo = tf.get_htm(x, y, z, a, b, c)
-    #cube = np.empty((0,3))
     for f in faces:
         base_outil_dans_base_profilo = tf.get_htm(f.x, f.y, f.z, f.a, f.b, f.c)
         base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
         base_point_cloud_dans_base_outil = base_profilo_dans_base_outil * base_point_cloud_dans_ancienne_base_profilo
         f.points_dans_base_outil = tf.apply_htm(base_point_cloud_dans_base_outil, f.points)
-        #cube = np.append(cube, f.points_dans_base_outil, axis=0)
 
     # draw cube
     colors = ["red", "green", "blue", "darkorange", "purple", "darkcyan"]
@@ -140,7 +129,7 @@ button_reset.on_clicked(f_reset)
 
 # Create a button to increase the precision reset the sliders to initial values.
 augmenter_precision = fig.add_axes([0.8, 0.24, 0.1, 0.04])
-button_augmenter_precision = Button(augmenter_precision, 'Up', hovercolor='0.975')
+button_augmenter_precision = Button(augmenter_precision, 'Augmenter précision', hovercolor='0.975')
     
 def f_augmenter_precision(event):
     global epsylon
@@ -153,7 +142,7 @@ button_augmenter_precision.on_clicked(f_augmenter_precision)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
 diminuer_precision = fig.add_axes([0.8, 0.28, 0.1, 0.04])
-button_diminuer_precision = Button(diminuer_precision, 'Down', hovercolor='0.975')
+button_diminuer_precision = Button(diminuer_precision, 'Diminuer précision', hovercolor='0.975')
 
 def f_diminuer_precision(event):
     global epsylon
@@ -166,7 +155,7 @@ button_diminuer_precision.on_clicked(f_diminuer_precision)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
 sauvegarder_valeurs = fig.add_axes([0.8, 0.32, 0.1, 0.04])
-button_sauvegarder_valeurs = Button(sauvegarder_valeurs, 'Save', hovercolor='0.975')
+button_sauvegarder_valeurs = Button(sauvegarder_valeurs, 'Sauver', hovercolor='0.975')
 
 def f_sauvegarder_valeurs(event):
     global x_ini, y_ini, z_ini, a_ini, b_ini, c_ini

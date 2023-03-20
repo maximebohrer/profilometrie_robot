@@ -25,6 +25,8 @@ La fonction `get_pose` est à utiliser uniquement si le programme `PC2KUKA`, qui
 
 Ce fichier et ces fonctions peuvent être réutilisées dans d'autres projets utilisant un robot KUKA.
 
+NB : A l'origine, il était prévu d'utiliser le programme `PC2KUKA` du robot afin de le rendre esclave de python. Toutes les positions à atteindre auraient alors été envoyées depuis le programme python. Cependant, le choix du type de mouvement, de la vitesse, etc. n'étaient pas possibles sans complexifier de manière importante le programme et la communication entre le robot et python. Le choix de la configuration des axes, pour un point donné, n'était également pas possible, ce qui s'avère génant pour les mouvements complexes que nous devons effectuer. Nous avons donc décidé de créer un programme robot propre à notre projet en y mettant les points en dur, et en gardant les fonctions de communications pour l'envoie de la position et de caractères pour la synchronisation avec python, comme vous le verrez dans le [script principal](#script-principal). Ceci a également l'avantage de pouvoir utiliser les différentes bases du robot, et d'en créer une pour le profilomètre, ce qui facilitera son déplacement si nécéssaire : seule l'origine du repère doit être reprise, et les points s'adapteront tout seuls. Voir la partie [Protocole de calibration](#protocole-de-calibration).
+
 Utilisation du profilomètre
 ---------------------------
 
@@ -76,7 +78,6 @@ Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour affi
 
 - Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`
 
-
 Visualisation & modélisation 3D 
 -------------------------------
 
@@ -91,6 +92,9 @@ Vous pouvez ensuite charger ce nuage de point dans un logiciel comme `Meshlab` a
 
 Utilisation de Meshlab
 ----------------------
+
+Le script principal génère un fichier par cube scanné. Ces nuages de points peuvent ensuite être importés, visualisés et traités dans Meshlab.
+
 - Importation du nuage de points dans `Meshlab` :
 Dans `Meshlab`, ouvrez le nuage de points traité enregistré précédemment au format `.txt`. Pour cela, allez dans le menu `File` et sélectionnez `Open...`.
 
@@ -149,12 +153,36 @@ La reconstitution du scan 3D à partir des différents profils repose sur le fai
 
 Le repère du nuage de points renvoyé par le profilomètre est représenté dans cette image :
 
+![Base du nuage de points](img/base_profilo.jpg)
+
+Le but est donc de placer le repère "profilometre" du robot au point (position et orientation) indiqué sur l'image. Plusieurs méthodes sont possibles :
+1. Utiliser la méthode des 3 points pour définir une base (Service > Mesurer > Base > Méthode des 3 points). Le robot demande alors de se placer à l'origine, puis sur l'axe x, puis sur l'axe y, et le repère est établi.
+2. Se rendre à l'origine du repère de l'image, relever la position du robot et l'entrer manuellement dans dans les paramètres x, y, z de la base (Service > Mesurer > Base > Entrée numérique). Si vous placez le profilomètre dans la même configuration que nous, le repère du nuage de points est orienté de la même façon que le repère du robot. Les paramètres a, b, c peuvent donc être mis à 0. Si le profilomètre est mis dans une autre orientation, ces paramètres devront être adaptés.
+
+Le repère "profilometre" du robot est maintenant à peu près au même endroit que le repère du nuage de points du profilomètre. Les coordonnées des points du nuage de points renvoyé par le profilomètre correspondent donc à peu près aux coordonnées des points du cube dans la base "profilometre" du robot (lorsque le robot est à sa position du début de scan). Il faut maintenant ajuster cette base pour l'aligner parfaitement sur la base du nuage de points. Un assistant de calibration permet de faire cela.
+- réaliser un premier scan à l'aide du [script principal](#script-principal). Ceci génèrera un fichier `data/nuage_brut.txt` qui contient, pour chaque face scannée du cube, le nuage de points renvoyé par le profilomètre (sans aucune transformation) et la position de départ du robot.
+- Lancer le script `calibration_assistant.py`. Cet assistant refait en direct les mêmes transformations que `script_principal.py` en ajoutant la possibilité de faire varier les paramètres de la base "profilomètre" et de visualiser les effets que ceci aurait.
+- Entrer les paramètres x, y, z, a, b, c actuels de la base "profilometre" (Service > Mesurer > Base > Entrée numérique).
+- Une fenêtre s'ouvre, dans laquelle des sliders permettent de faire varier ces paramètre, et de visualiser en direct l'effet que le changement aurait sur les transformations et la reconstitution du cube.
+- En jouant sur ces 6 valeurs, faire en sorte que le cube soit parfaitement reconstitué.
+- Fermer la fenêtre, les 6 nouveaux paramètres s'affichent dans le terminal.
+- Entrer ces nouvelles valeurs dans la base "profilometre" du robot (Service > Mesurer > Base > Entrée numérique).
+- relancer un scan avec le script principal. Visualiser le cube obtenu : il devrait être reconstitué correctement. Cette procédure peut être à nouveau répétée si ce n'est pas le cas.
+
+![Reconstitution du cube dans l'assistant de calibration](img/calibrationo_cube_reconstitue.png)
+
+NB : si le cube est impossible à reconstituer, cela peut vouloir dire que le robot est mal calibré. En effet, les positions de début de scan renvoyées seraient alors fausses, emêchant de faire les bonnes transformations. Une calibration des 6 axes du robot est alors nécessaire.
+
+Entrer les nouvelles valeurs dans la base "profilometre" du robot permet de faire deux choses :
+- les points du nuage de points correspondent maintenant parfaitement aux points du cube dans la base profilometre du robot. Le script principal n'a donc pas de transformation à faire pour passer de l'une à l'autre.
+- L'orientation du repère étant réajustée, le mouvement de scan du robot est maintenant effectué parfaitement parallèlement au profilomètre.
+
 
 Protocole en cas de changement de robot
 ---------------------------------------
 
-Pour continuer d'utiliser le projet avec un robot différent, deux étapes sont nécéssaire :
-- S'assurer que la matrice de rotation soit calculée correctement, ou modifier cette dernière. Pour cela, suivre le protocole décrit dans la partie [Transformations 3D](#transformations-3d).
+Pour continuer d'utiliser le projet avec un robot différent, deux étapes sont nécéssaires :
+- S'assurer que la matrice de rotation est calculée correctement, ou modifier cette dernière. Pour cela, suivre le protocole décrit dans la partie [Transformations 3D](#transformations-3d).
 - Effectuer une calibration du système en suivant le protocole de la partie [Protocole de calibration](#protocole-de-calibration)
 
 Perspectives d'amélioration
@@ -170,5 +198,8 @@ TODO List
 faire un dossier avec les docs
 faire un dosser avec les modèles 3d
 
-
-pour calibrer facilement : projection orthogonale / commencer par les rotations et finir par les translations
+explications api profilo
+explication dossier modèles 3d
+prespectives d'améliorations, problèmes (robot pas précis sur les points renvoyés)
+fusionner les 2 parties profilomètre
+partie script principal
