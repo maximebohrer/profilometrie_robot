@@ -1,7 +1,5 @@
 import ctypes as ct
 import os
-import time
-import copy
 
 LJV7IF_RC_OK = 0x0000						 # Normal termination
 LJV7IF_RC_ERR_OPEN = 0x1000					 # Failed to open the communication path
@@ -271,14 +269,15 @@ def GetProfileAdvance(deviceID):
 	if DEBUG: print(f"[GetProfileAdvance] {hex(res)}")
 	return ProfileDataToPointCloud(pdwProfileData.data, 0, pProfileInfo.IXStart, pProfileInfo.IXPitch)
 
-def GetBatchProfileAdvance(deviceID, nb_prof_par_lot, lim_nb_prof, yStep):
+def GetBatchProfileAdvance(deviceID, nbProfiles, yStep):
+	NB_PROFILES_PER_BATCH = 100
 	pReq = LJV7IF_GET_BATCH_PROFILE_ADVANCE_REQ()      # (IN) Specifies the position, etc., of the profiles to get.
 	pReq.byPosMode = LJV7IF_BATCH_POS_CURRENT
 	pReq.dwGetProfNo = 0
-	pReq.byGetProfCnt = nb_prof_par_lot
+	pReq.byGetProfCnt = NB_PROFILES_PER_BATCH
 	pRsp = LJV7IF_GET_BATCH_PROFILE_ADVANCE_RSP()      # (OUT) Indicates the position, etc., of the profiles that were actually acquired.
 	pProfileInfo = LJV7IF_PROFILE_INFO()               # (OUT) The profile information for the acquired profiles
-	pdwBatchData = (BATCH_DATA * nb_prof_par_lot)()    # (OUT) The buffer to get the profile data. only the number of profiles that could be acquired are returned.
+	pdwBatchData = (BATCH_DATA * NB_PROFILES_PER_BATCH)()    # (OUT) The buffer to get the profile data. only the number of profiles that could be acquired are returned.
 	pBatchMeasureData = (LJV7IF_MEASURE_DATA * 16)()   # (OUT) The measurement results for the batch data that is the target to get. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring.
 	pMeasureData = (LJV7IF_MEASURE_DATA * 16)()        # (OUT) The newest measurement results at the time the command was processed. This buffer stores the data for all 16 OUTs including the OUTs that are not measuring. The host requires the passing of a buffer LJV7IF_MEASURE_DATA[16] in size.
 
@@ -293,7 +292,7 @@ def GetBatchProfileAdvance(deviceID, nb_prof_par_lot, lim_nb_prof, yStep):
 	if DEBUG: print(f"[GetBatchProfileAdvance] [First batch] batch n°: {pRsp.dwGetBatchNo}, starting at profile n°: {pRsp.dwGetBatchTopProfNo}, number of profiles: {pRsp.byGetProfCnt}, result: {hex(res)}")
 	pReq.byPosMode = LJV7IF_BATCH_POS_SPEC
 		
-	while currentProfile < lim_nb_prof and pRsp.byGetProfCnt != 0:
+	while currentProfile < nbProfiles and pRsp.byGetProfCnt != 0:
 		pReq.dwGetBatchNo = pRsp.dwGetBatchNo
 		pReq.dwGetProfNo = pRsp.dwGetBatchTopProfNo + pRsp.byGetProfCnt
 		res = dll.LJV7IF_GetBatchProfileAdvance(deviceID, ct.byref(pReq), ct.byref(pRsp), ct.byref(pProfileInfo), ct.byref(pdwBatchData), ct.sizeof(pdwBatchData), ct.byref(pBatchMeasureData), ct.byref(pMeasureData))
