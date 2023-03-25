@@ -1,3 +1,12 @@
+"""
++------------------------------------------------------------------------+
+|                         IMT Nord Europe - 2023                         |
+|   BOHRER Maxime, LENTREBECQ Maxime, RUSHENAS Arnaud, TRAMAILLE Robin   |
++------------------------------------------------------------------------+
+
+Assistant de calibration
+"""
+
 import numpy as np
 from pykuka import Pose
 import transformations as tf

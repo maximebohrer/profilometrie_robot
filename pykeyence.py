@@ -1,3 +1,12 @@
+"""
++------------------------------------------------------------------------+
+|                         IMT Nord Europe - 2023                         |
+|   BOHRER Maxime, LENTREBECQ Maxime, RUSHENAS Arnaud, TRAMAILLE Robin   |
++------------------------------------------------------------------------+
+
+API de communication avec le profilomètre Keyence
+"""
+
 import ctypes as ct
 import os
 

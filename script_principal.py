@@ -1,3 +1,12 @@
+"""
++------------------------------------------------------------------------+
+|                         IMT Nord Europe - 2023                         |
+|   BOHRER Maxime, LENTREBECQ Maxime, RUSHENAS Arnaud, TRAMAILLE Robin   |
++------------------------------------------------------------------------+
+
+Script principal du projet de profilométrie robotisée
+"""
+
 import pykuka as kuka
 import pykeyence as profilo
 import transformations as tf
@@ -28,13 +37,12 @@ while True: # Pour chacun des cubes sur le convoyeur
     f_brut = open("data/nuage_brut.txt", 'w')
 
     while True: # Pour scanner un cube
-        # Start measure if Kuka at his "HOME" point
-        go = kuka.read_3964R_single_char()
+        go = kuka.read_3964R_single_char() # le robot commence le scan
         if go != kuka.GO: break
-        pose = kuka.read_3964R_pose() # Get starting point
+        pose = kuka.read_3964R_pose() # le robot envoie le point de départ
         print(f"Position de départ : {pose}")
         profilo.StartMeasure(DEVICE_ID)
-        done = kuka.read_3964R_single_char()
+        done = kuka.read_3964R_single_char() # le robot a fini le scan
         profilo.StopMeasure(DEVICE_ID)
 
         point_cloud = profilo.GetBatchProfileAdvance(DEVICE_ID, 1000, -yStep) # le signe de yStep dépend du sens du déplacement devant le profilomètre
@@ -51,10 +59,9 @@ while True: # Pour chacun des cubes sur le convoyeur
             f_brut.write(str(point_cloud[i][0]) + "\t" + str(point_cloud[i][1]) + "\t" + str(point_cloud[i][2]) + "\n")
         f_brut.write("**********\n")
 
-        # Batch treatment finished, send done to Kuka
-        kuka.send_3964R_single_char(kuka.DONE)
+        kuka.send_3964R_single_char(kuka.DONE) # le traitement est fini, le robot peuy continuer
 
-    # EXIT received from Kuka
+    # on sort de la boucle si le robot envoie EXIT
 
     f.close()
     f_brut.close()

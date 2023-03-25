@@ -1,3 +1,12 @@
+"""
++------------------------------------------------------------------------+
+|                         IMT Nord Europe - 2023                         |
+|   BOHRER Maxime, LENTREBECQ Maxime, RUSHENAS Arnaud, TRAMAILLE Robin   |
++------------------------------------------------------------------------+
+
+Fonctions de transformations 3D / changements de base
+"""
+
 import numpy as np
 
 def Rx(a: float):
