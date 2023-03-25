@@ -273,24 +273,24 @@ La fréquence d'échantillonnage du profilomètre doit être reportée dans la v
 Protocole de calibration
 ------------------------
 
-La reconstitution du scan 3D à partir des différents profils repose sur le fait que la base "profilometre" du robot soit parfaitement alignée avec la base du nuage de points renvoyé par le profilomètre. En effet, si les points renvoyés par le profilomètre peuvent être considérés comme étant dans la base "profilometre" du robot (ce qui est le cas si les deux bases sont parfaitement alignées), alors un changement de base peut permettre d'exprimer ces points dans le repère de l'outil. La pièce scannée étant fixe dans le repère de l'outil, passer tous les profils dans la base de l'outil permet automatiquement de reconstituer la pièce. Ces changements de bases sont fait en Python grâce aux coordonnées (de l'outil pince dans le repère profilometre) renvoyés par le robot avant chaque profil.
+La reconstitution du scan 3D à partir des différents profils repose sur le fait que la base `profilometre` du robot soit parfaitement alignée avec la base du nuage de points renvoyé par le profilomètre. En effet, si les points renvoyés par le profilomètre peuvent être considérés comme étant dans la base `profilometre` du robot (ce qui est le cas si les deux bases sont parfaitement alignées), alors un changement de base peut permettre d'exprimer ces points dans le repère de l'outil. La pièce scannée étant fixe dans le repère de l'outil, passer tous les profils dans la base de l'outil permet automatiquement de reconstituer la pièce. Ces changements de bases sont fait en Python grâce aux coordonnées (de l'outil pince dans le repère profilometre) renvoyés par le robot avant chaque profil.
 
 Le repère du nuage de points renvoyé par le profilomètre est représenté dans cette image. NB : son origine se trouve à environ 200 mm de la sortie du laser du profilomètre, mais cela peut varier en fonction du réglage du zéro du profilomètre.
 
 ![Base du nuage de points](img/base_profilo.jpg)
 
-Le but est donc de placer le repère "profilometre" du robot au point (position et orientation) indiqué sur l'image. Plusieurs méthodes sont possibles :
+Le but est donc de placer le repère `profilometre` du robot au point (position et orientation) indiqué sur l'image. Plusieurs méthodes sont possibles :
 1. Utiliser la méthode des 3 points pour définir une base (Service > Mesurer > Base > Méthode des 3 points). Le robot demande alors de se placer à l'origine, puis sur l'axe x, puis sur l'axe y, et le repère est établi.
 2. Se rendre à l'origine du repère de l'image, relever la position du robot et l'entrer manuellement dans dans les paramètres x, y, z de la base (Service > Mesurer > Base > Entrée numérique). Si vous placez le profilomètre dans la même configuration que nous, le repère du nuage de points est orienté de la même façon que le repère du robot. Les paramètres a, b, c peuvent donc être mis à 0. Si le profilomètre est mis dans une autre orientation, ces paramètres devront être adaptés.
 
-Le repère "profilometre" du robot est maintenant à peu près au même endroit que le repère du nuage de points du profilomètre. Les coordonnées des points du nuage de points renvoyé par le profilomètre correspondent donc à peu près aux coordonnées des points du cube dans la base "profilometre" du robot (lorsque le robot est à sa position du début de scan). Il faut maintenant ajuster cette base pour l'aligner parfaitement sur la base du nuage de points. Un assistant de calibration permet de faire cela.
+Le repère `profilometre` du robot est maintenant à peu près au même endroit que le repère du nuage de points du profilomètre. Les coordonnées des points du nuage de points renvoyé par le profilomètre correspondent donc à peu près aux coordonnées des points du cube dans la base `profilometre` du robot (lorsque le robot est à sa position du début de scan). Il faut maintenant ajuster cette base pour l'aligner parfaitement sur la base du nuage de points. Un assistant de calibration permet de faire cela.
 - réaliser un premier scan à l'aide du [script principal](#script-principal). Ceci génèrera un fichier `data/nuage_brut.txt` qui contient, pour chaque face scannée du cube, le nuage de points renvoyé par le profilomètre (sans aucune transformation) et la position de départ du robot.
 - Lancer le script `calibration_assistant.py`. Cet assistant refait en direct les mêmes transformations que `script_principal.py` en ajoutant la possibilité de faire varier les paramètres de la base "profilomètre" et de visualiser les effets que ceci aurait.
-- Entrer les paramètres x, y, z, a, b, c actuels de la base "profilometre" (Service > Mesurer > Base > Entrée numérique).
+- Entrer les paramètres x, y, z, a, b, c actuels de la base `profilometre` (Service > Mesurer > Base > Entrée numérique).
 - Une fenêtre s'ouvre, dans laquelle des sliders permettent de faire varier ces paramètre, et de visualiser en direct l'effet que le changement aurait sur les transformations et la reconstitution du cube.
 - En jouant sur ces 6 valeurs, faire en sorte que le cube soit parfaitement reconstitué.
 - Fermer la fenêtre, les 6 nouveaux paramètres s'affichent dans le terminal.
-- Entrer ces nouvelles valeurs dans la base "profilometre" du robot (Service > Mesurer > Base > Entrée numérique).
+- Entrer ces nouvelles valeurs dans la base `profilometre` du robot (Service > Mesurer > Base > Entrée numérique).
 - relancer un scan avec le script principal. Visualiser le cube obtenu : il devrait être reconstitué correctement. Cette procédure peut être à nouveau répétée si ce n'est pas le cas.
 
 ![Reconstitution du cube dans l'assistant de calibration](img/calibration_nok.jpg)
@@ -298,7 +298,7 @@ Le repère "profilometre" du robot est maintenant à peu près au même endroit 
 
 NB : si le cube est impossible à reconstituer, cela peut vouloir dire que le robot est mal calibré. En effet, les positions de début de scan renvoyées seraient alors fausses, emêchant de faire les bonnes transformations. Une calibration des 6 axes du robot est alors nécessaire.
 
-Entrer les nouvelles valeurs dans la base "profilometre" du robot permet de faire deux choses :
+Entrer les nouvelles valeurs dans la base `profilometre` du robot permet de faire deux choses :
 - les points du nuage de points correspondent maintenant parfaitement aux points du cube dans la base profilometre du robot. Le script principal n'a donc pas de transformation à faire pour passer de l'une à l'autre.
 - L'orientation du repère étant réajustée, le mouvement de scan du robot est maintenant effectué parfaitement parallèlement au profilomètre.
 
