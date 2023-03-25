@@ -14,7 +14,7 @@ input("Start ?")
 StartMeasure(DEVICE_ID)
 input("Stop ?")
 StopMeasure(DEVICE_ID)
-point_cloud = GetBatchProfileAdvance(DEVICE_ID, 100, 1000, -yStep)
+point_cloud = GetBatchProfileAdvance(DEVICE_ID, 1000, -yStep)
 
 with open("data/beton_brut.txt", 'w') as f_brut:
     for i in point_cloud:

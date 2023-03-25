@@ -24,11 +24,10 @@ StartMeasure(DEVICE_ID)
 input("Stop Measure ? [ENTER]")
 StopMeasure(DEVICE_ID)
 
-NB_PROF_PAR_LOT = 10
 LIM_NB_PROF = 1000
 yStep = 0.1
 
-cloud = GetBatchProfileAdvance(DEVICE_ID, NB_PROF_PAR_LOT, LIM_NB_PROF, yStep)
+cloud = GetBatchProfileAdvance(DEVICE_ID, LIM_NB_PROF, yStep)
 
 # Visualisation 3D du profile
 FILE_NAME = "nuage.txt"
