@@ -1,4 +1,3 @@
-import os
 import numpy as np
 from pykuka import Pose
 import transformations as tf

@@ -1,11 +1,4 @@
 import numpy as np
-# Tool 0 Base 0
-# x vers le sol
-# y vers l'atelier
-# z vers le tableau
-#a sur z
-#c sur x
-#b sur y
 
 def Rx(a: float):
     """Calculate the rotation matrix around the x axis. a is the angle in radians."""

@@ -8,16 +8,41 @@ Projet réalisé dans le cadre d'une UV projet à l'IMT Nord Europe qui consiste
 
 A terme, tout doit passer par python : synchronisation avec le robot, démarrage des mesures et récupérations des données du profilomètre, assemblage des données et reconstitution d'un modèle 3D, détection des défauts, etc. Nous avons donc besoin de plusieurs briques de programme élémentaires, à commencer par des API de communication avec le robot et le profilomètre.
 
+Le robot devra prendre les pièces à scanner sur le convoyeur, et présenter ses différentes faces au profilomètre. Un script python se charge pendant ce temps de récupérer les données du profilomètre et de reconstituer le cube.
+
 Table des matières
 ------------------
 
 - [API Kuka](#api-kuka)
-- [Utilisation du profilomètre](#utilisation-du-profilomètre)
 - [API Profilomètre](#api-profilomètre)
-
+- [Utilisation du profilomètre](#utilisation-du-profilomètre)
+- [Visualisation & modélisation 3D](#visualisation--modélisation-3d)
+- [Utilisation de Meshlab](#utilisation-de-meshlab)
+- [Transformations 3D](#transformations-3d)
+- [Script principal](#script-principal)
+- [Protocole de calibration](#protocole-de-calibration)
+- [Protocole en cas de changement de robot](#protocole-en-cas-de-changement-de-robot)
+- [Annexes](#annexes)
+- [Limitations connues et perspectives d'amélioration](#limitations-connues-et-perspectives-damélioration)
 
 Installation
 ------------
+
+Commencez par cloner le dépôt git :
+```bash
+git clone https://github.com/maximebohrer/profilometrie_robot.git
+```
+ou téléchargez le dossier à partir de Github. Nous recommandons l'utilisation de Visual Studio Code avec l'extension python pour ouvrir ce dossier, naviguer entre les scripts et les exécuter.
+
+Voici les modules nécessaire pour faire fonctionner l'ensemble du projet. Attention : pour `open3d`, les versions récentes de python ne fonctionnent pas. Nous recommandons la version `3.9`.
+```bash
+pip install numpy
+pip install pyserial
+pip install matplotlib
+pip install open3d
+```
+
+Lisez ensuite cette documentation, et en particulier la partie [Script principal](#script-principal) qui explique comment lancer le projet.
 
 API Kuka
 --------
@@ -37,8 +62,24 @@ import pykuka as kuka
 
 Ce fichier et ces fonctions peuvent être réutilisées dans d'autres projets utilisant un robot KUKA.
 
-NB : A l'origine, il était prévu d'utiliser le programme `PC2KUKA` du robot afin de le rendre esclave de python. Toutes les positions à atteindre auraient alors été envoyées depuis le programme python. Cependant, le choix du type de mouvement, de la vitesse, etc. n'étaient pas possibles sans complexifier de manière importante le programme et la communication entre le robot et python. Le choix de la configuration des axes, pour un point donné, n'était également pas possible, ce qui s'avère génant pour les mouvements complexes que nous devons effectuer. Nous avons donc décidé de créer un programme robot propre à notre projet en y mettant les points en dur, et en gardant les fonctions de communications pour l'envoie de la position et de caractères pour la synchronisation avec python, comme vous le verrez dans le [script principal](#script-principal). Ceci a également l'avantage de pouvoir utiliser les différentes bases du robot, et d'en créer une pour le profilomètre, ce qui facilitera son déplacement si nécéssaire : seule l'origine du repère doit être reprise, et les points s'adapteront tout seuls. Voir la partie [Protocole de calibration](#protocole-de-calibration).
+NB : A l'origine, il était prévu d'utiliser le programme `PC2KUKA` du robot afin de le rendre esclave de python. Toutes les positions à atteindre auraient alors été envoyées depuis le programme python. Cependant, le choix du type de mouvement, de la vitesse, etc. n'étaient pas possibles sans complexifier de manière importante le programme et la communication entre le robot et python. Le choix de la configuration des axes, pour un point donné, n'était également pas possible, ce qui s'avère génant pour les mouvements complexes que nous devons effectuer. Nous avons donc décidé de créer un programme robot propre à notre projet en y mettant les points en dur, et en gardant les fonctions de communications pour l'envoi de la position et de caractères pour la synchronisation avec python, comme vous le verrez dans le [script principal](#script-principal). Ceci a également l'avantage de pouvoir utiliser les différentes bases du robot, et d'en créer une pour le profilomètre, ce qui facilitera son déplacement si nécéssaire : seule l'origine du repère doit être reprise, et les points s'adapteront tout seuls. Voir la partie [Protocole de calibration](#protocole-de-calibration).
 
+API Profilomètre
+----------------
+
+La communication avec le profilomètre s'effectue grâce à au fichier `LJV7_IF.dll` fourni par Keyence. Ce type de DLL étant habituellement prévu pour être utilisé dans des langages bas niveau comme le C ou le C++, un fichier `pyprofilo.py` permettra de simplifier les appels aux fonctions du DLL en s'y interfaçant grâce au module `ctypes`. Ce dernier permet de travailler avec tous les types du langage C en python, de charger des fichiers DLL, et d'appeler les fonctions qui s'y trouvent, après un travail de convertion de types, de gestion de structures C, etc. Ce fichier pourra ensuite être importé dans le scipt principal, et peut aussi être réusilisé dans d'autres projets :
+```python
+import pykeyence as profilo
+```
+
+- La fonction `Initialize(debug)` permet d'initialiser le DLL. Elle doit être appelée avant toutes les autres. Mettre `débug` à `True` pour afficher des messages de débuggage dans le terminal.
+- La fonction `EthernetOpen(deviceID, ipAddress, port)` permet de se connecter au profilomètre. Renseigner l'adresse IP (chaîne de charactères) et le port. Dans cette fonction et dans celles qui suivent, `deviceID` doit être mis à 0.
+- La fonction `GetProfileAdvance(deviceID)` permet de récupérer un seul profile lorsque le profilomètre n'est pas en mode batch. La fonction renvoie un nuage de points de la forme [[x, y, z], [x, y, z], ...] (y étant toujours nul puisqu'on a qu'un seul profile).
+- Les fonctions `StartMeasure(deviceID)` et `StopMeasure(deviceID)` permettent de démarrer et d'arrêter la prise de profils lorsque le profilomètre est en mode batch. Les profils sont pris les uns après les autres, à interval régulier, ou manuellement en utilisant la fonction `Trigger(deviceID)` (voir la partie [utilisation du profilomètre](#utilisation-du-profilomètre))
+- La fonction `GetBatchProfileAdvance(deviceID, nbProfiles, yStep)` permet de récupérer les profils pris pendant une mesure en mode batch. `nbProfiles` permet de préciser le nombre maximal de profils à récupérer. Le nombre de profils effectivements récupérés peut être inférieur. `yStep` est la distance entre deux profils successifs (la pièce se déplace dans la direction y). Elle doit être calculée en fonction de la fréquence de prise des profils du profilomètre et la vitesse de déplacement de la pièce devant le profilomètre. Cette fonction est prévue pour être utilisée uniquement en mode continu. Elle peut être adaptée si besoin pour fonctionner différemment.
+- Les fonctions `CommClose(deviceID)` et `Finalize()` doivent être appelées à la fin du script. Elles servent à fermer la communication avec le profilomètre et à désinitialiser le DLL.
+
+D'autres fonctions du profilomètre pourraient être implémentées dans ce fichier en fonction des besoins, notamment tout ce qui concerne la communication haute vitesse. Toutes les informations nécessaires à ce type de développement sont disponibles dans la documentation de la librairie du profilomètre `doc/LJ-V7000 Communication Library.pdf`.
 
 Utilisation du profilomètre
 ---------------------------
@@ -59,8 +100,7 @@ Le profilomètre a deux modes principaux de fonctionnement :
 
 Tous ces paramètres (mode batch, fréquence, pas, nombre de profils) peuvent être régler grâce au bouton `réglage direct`.
 
-
-Configuration du profilomètre
+Utilisation du profilomètre ----> à fusionner avec la partie précédente
 -----------------------------
 
 Pour configurer le profilomètre Keyence LJ-V7080, on utilise le logiciel `LJ Navigator`. Voici les différentes étapes pour configurer correctement le profilomètre :
@@ -89,18 +129,16 @@ Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour affi
 
 - Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`. Ce processus est complètement automatisé dans le [script principal](#script-principal) grâce à l'[API du profilomètre](#api-profilomètre).
 
-
 Visualisation & modélisation 3D 
 -------------------------------
 
-Le fichier `Traitement faces.py` permet de traiter et d'analyser un nuage de point en format `txt` dont les 3 coordonnées ont déjà été crées. Il utilise la bibliothèque `Open3D` pour charger et filtrer les données brutes, puis calcule les coins et les faces du cube correspondant à l'objet. Il affiche ensuite les informations sur chaque face, telles que la longueur de chaque côté, l'aire de la face et sa rugosité. Le fichier contient également une fonction pour enregistrer les coordonnées des coins du cube dans un fichier texte, ainsi qu'un code pour afficher le modèle 3D du cube dans une fenêtre `matplotlib`. Les utilisateurs peuvent donc facilement adapter ce fichier à leur propre projet en modifiant les paramètres de filtrage ou en ajoutant des fonctionnalités supplémentaires. 
+Le fichier `Traitement faces.py` permet de traiter et d'analyser un nuage de point en format `txt` dont les 3 coordonnées ont déjà été créées. Il utilise la bibliothèque `Open3D` pour charger et filtrer les données brutes, puis calcule les coins et les faces du cube correspondant à l'objet. Il affiche ensuite les informations sur chaque face, telles que la longueur de chaque côté, l'aire de la face et sa rugosité. Le fichier contient également une fonction pour enregistrer les coordonnées des coins du cube dans un fichier texte, ainsi qu'un code pour afficher le modèle 3D du cube dans une fenêtre `matplotlib`. Les utilisateurs peuvent donc facilement adapter ce fichier à leur propre projet en modifiant les paramètres de filtrage ou en ajoutant des fonctionnalités supplémentaires. 
 
 Cependant, si vous souhaitez directement ouvrir un nuage de points au format `csv`, vous devrez d'abord créer les 2 coordonnées manquantes à partir du numéro des colonnes et des lignes, puis les mettre à l'échelle en fonction des paramètres sélectionnés.
 
 Le fichier `Traitement face` permet aussi de réduire le bruit du nuage de point. Le nuage de point traité est enregistré dans l'arborescence suivante, en format `txt` : `Data/Debug/nuage_filtered_outliers_removed_30_2.txt`.
 
 Vous pouvez ensuite charger ce nuage de point dans un logiciel comme `Meshlab` afin de modéliser les faces du cubes.
-
 
 Utilisation de Meshlab
 ----------------------
@@ -136,24 +174,6 @@ Exportation du modèle :
 Une fois la surface du cube reconstituée et les trous remplis, vous pouvez exporter le modèle en allant dans le menu `File` > `Export Mesh As...`. Choisissez le format d'exportation souhaité (par exemple `.obj`) et enregistrez le fichier.
 En utilisant cette méthode de `ball pivoting`, vous pouvez facilement modéliser les faces d'un cube à partir d'un nuage de points dans `Meshlab`.
 
-
-API Profilomètre
-----------------
-
-La communication avec le profilomètre s'effectue grâce à au fichier `LJV7_IF.dll` fourni par Keyence. Ce type de DLL étant habituellement prévu pour être utilisé dans des langages bas niveau comme le C ou le C++, un fichier `pyprofilo.py` permettra de simplifier les appels aux fonctions du DLL en s'y interfaçant grâce au module `ctypes`. Ce dernier permet de travailler avec tous les types du langage C en python, de charger des fichiers DLL, et d'appeler les fonctions qui s'y trouvent, après un travail de convertion de types, de gestion de structures C, etc. Ce fichier pourra ensuite être importé dans le scipt principal, et peut aussi être réusilisé dans d'autres projets :
-```python
-import pykeyence as profilo
-```
-
-- La fonction `Initialize(debug)` permet d'initialiser le DLL. Elle doit être appelée avant toutes les autres. Mettre `débug` à `True` pour afficher des messages de débuggage dans le terminal.
-- La fonction `EthernetOpen(deviceID, ipAddress, port)` permet de se connecter au profilomètre. Renseigner l'adresse IP (chaîne de charactères) et le port. Dans cette fonction et dans celles qui suivent, `deviceID` doit être mis à 0.
-- La fonction `GetProfileAdvance(deviceID)` permet de récupérer un seul profile lorsque le profilomètre n'est pas en mode batch. La fonction renvoie un nuage de points de la forme [[x, y, z], [x, y, z], ...] (y étant toujours nul puisqu'on a qu'un seul profile).
-- Les fonctions `StartMeasure(deviceID)` et `StopMeasure(deviceID)` permettent de démarrer et d'arrêter la prise de profils lorsque le profilomètre est en mode batch. Les profiles sont pris les uns après les autres, à interval régulier, ou manuellement en utilisant la fonction `Trigger(deviceID)` (voir la partie [utilisation du profilomètre](#utilisation-du-profilomètre))
-- La fonction `GetBatchProfileAdvance(deviceID, nbProfiles, yStep)` permet de récupérer les profils pris pendant une mesure en mode batch. `nbProfiles` permet de préciser le nombre maximal de profils à récupérer. Le nombre de profils effectivements récupérés peut être inférieur. `yStep` est la distance entre deux profils successifs (la pièce se déplace dans la direction y). Elle doit être calculée en fonction de la fréquence de prise des profils du profilomètre et la vitesse de déplacement de la pièce devant le profilomètre. Cette fonction est prévue pour être utilisée uniquement en mode continu. Elle peut être adaptée si besoin pour fonctionner différemment.
-- Les fonctions `CommClose(deviceID)` et `Finalize()` doivent être appelées à la fin du script. Elles servent à fermer la communication avec le profilomètre et à désinitialiser le DLL.
-
-D'autres fonctions du profilomètre pourraient être implémentées dans ce fichier en fonction des besoins, notamment tout ce qui concerne la communication haute vitesse. Toutes les informations nécessaires à ce type de développement sont disponibles dans la documentation de la librairie du profilomètre `doc/LJ-V7000 Communication Library.pdf`.
-
 Transformations 3D
 ------------------
 
@@ -173,19 +193,25 @@ Attention : les paramètres de rotation a, b, et c ne signifient pas toujours la
 - Affichier sur le robot et relever les coordonnées x, y, z de ce point dans la base nouvellement créée, et les exprimer dans la base world grâce à la fonction `apply_htm`.
 - Afficher sur le robot les coordonnées de ce même point, mais dans la base world (base principale, base 0) et comparer avec les résultats obtenus. Si tout correspond, alors la matrice de rotation est juste. Sinon, en tester une autre.
 
-
 Script principal
 ----------------
 
 Le fichier `script_principal.py` communique simultanément avec le robot et le profilomètre pour réaliser le scan des pièces. Le programme `PROJET_PROFILO` du robot cherche les cubes sur le convoyeur et les passe devant le profilomètre. Le programme du robot doit être lancé de préférence avant le script python.
 
-### Prérequis pour lancer le système
+### Prérequis et lancement
 
 - Un dossier `data` doit être créé
 - Le profilomètre doit être en marche et [correctement configuré](#du-côté-du-profilomètre)
+- Un câble série doit relier le robot et l'ordinateur sur lequel le script python sera exécuté
+- Le port série spécifié lors de l'initialisation du module `pykuka` doit être le bon (généralement `COM1` si le port série physique de l'ordinateur est utilisé)
 - Le robot doit être en marche et le [programme `PROJET_PROFILO`](#du-côté-du-programme-du-robot) doit tourner en automatique à une vitesse de 100% (uniquement après avoir été testé en faible vitesse !)
 - Les [bibliothèques python](#installation) nécesaires doivent être installées
 - Les variables `VITESSE_ROBOT` et `FREQUENCE_PROFILO` doivent correspondre respectivement à la vitesse linéaire du robot lors du movement de scan et à la fréquence d'échantillonnage du profilomètre.
+
+Vous pouvez ensuite lancer le script python
+```bash
+python script_principal.py
+```
 
 ### Du côté du script python
 
@@ -241,9 +267,8 @@ Voir le programme `PROJET_PROFILO` du robot et les commentaires présents pour p
 
 ### Du côté du profilomètre
 
-Le profilomètre doit être en mode batch et en mode continu.
+Le profilomètre doit être en mode batch et en mode continu. Les réglages que nous avons utilisé sont une fréquence de 100 Hz (pour une vitesse de 0.0130 m/s du robot) et 1000 points. Voir la partur [Utilisation du profilomètre](#utilisation-du-profilomètre) pour effectuer ces réglages.
 La fréquence d'échantillonnage du profilomètre doit être reportée dans la variable `FREQUENCE_PROFILO` du script python, pour permettre le calcul de la distance entre chaque profil.
-
 
 Protocole de calibration
 ------------------------
@@ -277,14 +302,12 @@ Entrer les nouvelles valeurs dans la base "profilometre" du robot permet de fair
 - les points du nuage de points correspondent maintenant parfaitement aux points du cube dans la base profilometre du robot. Le script principal n'a donc pas de transformation à faire pour passer de l'une à l'autre.
 - L'orientation du repère étant réajustée, le mouvement de scan du robot est maintenant effectué parfaitement parallèlement au profilomètre.
 
-
 Protocole en cas de changement de robot
 ---------------------------------------
 
 Pour continuer d'utiliser le projet avec un robot différent, deux étapes sont nécéssaires :
 - S'assurer que la matrice de rotation est calculée correctement, ou modifier cette dernière. Pour cela, suivre le protocole décrit dans la partie [Transformations 3D](#transformations-3d).
 - Effectuer une calibration du système en suivant le protocole de la partie [Protocole de calibration](#protocole-de-calibration).
-
 
 Annexes
 -------
@@ -295,26 +318,29 @@ Le dossier `doc` contient les documentations tierces importantes.
 
 Le dossier `code_robot` contient des sauvegardes des programmes du robot Kuka.
 
-
 Limitations connues et perspectives d'amélioration
 --------------------------------------------------
 
-Calibration automatique à base de déscente de gradient
-- Système de calibration automatique (cf "base_point_cloud_dans_base_profilo = get_htm(0, 0, -170, 0, 0, 0)") afin de déterminer les 6 paramètres pour que les faces concordent parfaitement
-- Réaliser le scan des 4 premières faces en une seule fois en faisant tourner le cube devant le profilo
-- ajouter une transofmration par face
-- vibrations lors du mouvement linéaire
-- réglage automatique des paramètres du profilo
+### Calibration automatique
 
+La [calibration](#protocole-de-calibration) du système peut être automatisée : En trouvant une fonction qui atteindrait un minimum lorsque le cube est reconstitué, un [algorithme de descente de gradiant](https://fr.wikipedia.org/wiki/Algorithme_du_gradient) peut être utiliser pour trouver les 6 paramètres x, y, z, a, b, c qui minimisent cette fonction. On pourrait par exemple demander à l'utilisateur de reconstituer à peu près le cube, puis l'algorithme pourrait trouver dans chaque face les sommets du cube. On peut ensuite calculer la distance entre les sommets de faces adjacentes qui sont sencés être confondus. La somme des carrés de ces différences constituerait une bonne fonction à minimiser : lorsque le cube est reconstitué, les sommets se touchent et la distance est nulle.
+
+### Fluidité du mouvement linéaire du robot
+
+La fluidité du robot actuel lors du déplacement linéaire devant le profilomètre n'est pas parfaite. Lors d'un déplacement horizontal, le robot "vibre" de haut en bas, ce qui laisse apparaitre des oscillations d'environ un dixième de millimètre sur le profil. L'utilisation d'un autre robot réglerait le problème, un essai avec l'UR5 l'a confirmé. On pourrait également essayer de trouver d'autres positions ou configurations d'axes du robot qui limiteraient le problème.
+
+### Précision du placement du robot
+
+Le robot dispose d'une très bonne répétabilité : lorsqu'on l'envoie deux fois au même point, il ira toujours exactement au même point. Par contre, son repère n'est pas parfait : le point auquel le robot pense être n'est pas exactement celui auquel il est vraiment. Ceci est vraisemblablement dû à la calibration de ses 6 axes. Lors des transormations du script principal, les faces ne sont donc pas forcément replacées exactement à l'endroit où elles sont sencées être. Cela se voit aussi dans l'assistant de calibration, où il est difficile d'obtenir un cube parfait en jouant avec les paramètres. Encore une fois, l'utilisation d'un autre robot réglerait le problème.
+
+Ce problème pourrait aussi être contourné en introduisant une transformation supplémentaire par face, pour corriger l'erreur de positionnement du robot. Dans le script principal, ceci se traduirait par une liste de matrices de transformation homogène à appliquer successivement à chaque face scannée. L'inconvénient serait que si l'on change la position de départ du scan d'une face dans le robot, sa matrice devra aussi être actualisée. L'assistant de calibration devrait aussi être repensé pour permettre de régler ces matrice, et donc de bouger les différentes faces indépendamment. Mais ceci pourrait aussi être automatisé de la même façon que le premier point, sauf qu'il y aurait 5 * 6 paramètres de plus si l'on scanne 5 faces (un x, y, z, a, b, c de plus par face).
+
+### Réglage à distance du profilomètre
+
+Pour l'instant, le profilomètre doit être configuré à la main avant de lancer le script. Le DLL du profilomètre met cependant à disposition des fonctions permettant de changer cette configuration. Les réglages peuvent donc être effectués depuis python : voir par exemple la fonction `SetSetting_SamplingFrequency` du fichier `pykeyence.py`. D'autres peuvent être implémentées en suivant la documentation `doc/LJ-V7000 Communication Library.pdf`. Il peut être inréressant de les intégrer au script principal, de manière à pouvoir lancer le projet même si le profilomètre n'est pas bien configuré.
 
 TODO List
 ---------
 
-intro
-installation des dépendances
-script principal
-ajouter le reste des modèles 3d
-prespectives d'améliorations, problèmes (robot pas précis sur les points renvoyés)
 fusionner les 2 parties profilomètre
-partie script principal
 ENLEVER UN PARAMETRE DE TOUTES LES FONCTIONS GETBATCHPROFILEADVANCE

@@ -1,8 +1,6 @@
 import pykuka as kuka
 import pykeyence as profilo
 import transformations as tf
-import os
-import random as rd
 
 DEVICE_ID           = 0
 IP_ADDRESS          = "10.2.34.1"
