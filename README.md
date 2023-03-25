@@ -12,6 +12,10 @@ Table des matières
 - [Utilisation du profilomètre](#utilisation-du-profilomètre)
 - [API Profilomètre](#api-profilomètre)
 
+
+Installation
+------------
+
 API Kuka
 --------
 
@@ -20,11 +24,13 @@ Le robot Kuka reçoit les commandes envoyées depuis python grâce à une commun
 import pykuka as kuka
 ```
 
+- La fonction `initialize(port)` doit être appelée avant toutes les autres. Elle sert à initialiser la communication série : par exemple `initialize("COM1")`.
 - La fonction `read_3964R_pose` est à utiliser lorsque la fonction `SEND` est appelée dans le programme du robot. Elle sert à récupérer et décoder la position renvoyée par le robot.
 - La fonction `send_3964R_single_char` est à utiliser lorsque la fonction `READ_CHAR` est appelée dans le programme du robot. Elle sert à envoyer un caractère au robot.
 - La fonction `send_3964R_single_double` est à utiliser lorsque la fonction `READ_DOUBLE` est appelée dans le programme du robot. Elle sert à envoyer un nombre décimal au robot.
 - La fonction `go_to_pose` est à utiliser uniquement si le programme `PC2KUKA`, qui permet d'interpréter des commandes de mouvement, tourne sur le robot. Elle sert à envoyer au robot l'ordre d'atteindre une position.
 - La fonction `get_pose` est à utiliser uniquement si le programme `PC2KUKA`, qui permet d'interpréter et de répondre à des commandes, tourne sur le robot. Elle sert à demander au robot d'envoyer sa position actuelle.
+- La fonction `finalize` doit être appelée à la fin du script. Elle sert à terminer la communication série.
 
 Ce fichier et ces fonctions peuvent être réutilisées dans d'autres projets utilisant un robot KUKA.
 
@@ -141,13 +147,17 @@ import pykeyence as profilo
 - La fonction `GetProfileAdvance(deviceID)` permet de récupérer un seul profile lorsque le profilomètre n'est pas en mode batch. La fonction renvoie un nuage de points de la forme [[x, y, z], [x, y, z], ...] (y étant toujours nul puisqu'on a qu'un seul profile).
 - Les fonctions `StartMeasure(deviceID)` et `StopMeasure(deviceID)` permettent de démarrer et d'arrêter la prise de profils lorsque le profilomètre est en mode batch. Les profiles sont pris les uns après les autres, à interval régulier, ou manuellement en utilisant la fonction `Trigger(deviceID)` (voir la partie [utilisation du profilomètre](#utilisation-du-profilomètre))
 - La fonction `GetBatchProfileAdvance(deviceID, nbProfiles, yStep)` permet de récupérer les profils pris pendant une mesure en mode batch. `nbProfiles` permet de préciser le nombre maximal de profils à récupérer. Le nombre de profils effectivements récupérés peut être inférieur. `yStep` est la distance entre deux profils successifs (la pièce se déplace dans la direction y). Elle doit être calculée en fonction de la fréquence de prise des profils du profilomètre et la vitesse de déplacement de la pièce devant le profilomètre. Cette fonction est prévue pour être utilisée uniquement en mode continu. Elle peut être adaptée si besoin pour fonctionner différemment.
+- Les fonctions `CommClose(deviceID)` et `Finalize()` doivent être appelées à la fin du script. Elles servent à fermer la communication avec le profilomètre et à désinitialiser le DLL.
 
 D'autres fonctions du profilomètre pourraient être implémentées dans ce fichier en fonction des besoins. Toutes les informations nécessaires à ce type de développement sont disponibles dans la documentation de la librairie du profilomètre `doc/LJ-V7000 Communication Library.pdf`.
 
 Transformations 3D
 ------------------
 
-Le fichier `transformations.py` contient des fonctions permettant de faire des changements de base en robotique. Des matrices de transformations homogènes sont utilisées.
+Le fichier `transformations.py` contient des fonctions permettant de faire des changements de base en robotique. Des matrices de transformations homogènes sont utilisées. Ce fichier pourra ensuite être importé dans le scipt principal :
+```python
+import transformations as tf
+```
 
 La fonction `get_htm` permet de calculer une matrice de transformation homogène à partir à partir de 6 paramètres x, y, z, a, b, c qui représentent la position et l'orientation d'une base B dans une base A. Cette matrice permettra ensuite de convertir des points dont les coordonnées sont exprimées dans la base B aux mêmes points dont les coordonnées sont exprimées dans la base A. Cette fonction utilise des matrices `numpy`, qui peuvent être multipliées entres elles et inversées. Inverser une matrice permet de passer de la base A à B au lieu de passer de la base B à A. Multiplier des matrices entres elles permet d'enchainer les changements de base. La dernière matrice du produit correspond au premier changement de base.
 
@@ -156,7 +166,7 @@ La fonction `apply_htm` prend en argument une matrice de transformation homogèn
 Attention : les paramètres de rotation a, b, et c ne signifient pas toujours la même chose pour les différents modèles de robot. Pour que le projet fonctionne, il faut être sûr du calcul de la matrice de rotation. Par exemple, pour le robot utilisé, la matrice de rotation est `rotation_matrix = Rz(a) * Ry(b) * Rx(c)`, c'est-à-dire qu'un point est décrit par une rotation autour de x d'angle c, puis autour de y d'angle b, puis autour de z d'angle a, puis par la translation x, y, z. D'autres conventions existent cependant, comme la convention ZYZ (`rotation_matrix = Rz(a) * Ry(b) * Rz(c)`). Cette expression, qui se trouve dans la fonction `get_htm`, est donc à modifier en fonction du robot utilisé, et à déterminer à partir de sa documentation ou en faisant différents essais. Pour savoir si la matrice est correcte, suivre ce protocole :
 - Créer une nouvelle base dans le robot avec une position et une orientation aléatoire.
 - Relever les paramètres x, y, z, a, b, c de cette base, et les utiliser pour créer une matrice de transformation homogène avec `get_htm`. Cette matrice permettra donc de passer des coordonnées de cette base aux coordonnées de la base world du robot.
-- Emmener l'outil à une position et une orientation aléatoire.
+- Ammener l'outil à une position et une orientation aléatoire.
 - Affichier sur le robot et relever les coordonnées x, y, z de ce point dans la base nouvellement créée, et les exprimer dans la base world grâce à la fonction `apply_htm`.
 - Afficher sur le robot les coordonnées de ce même point, mais dans la base world (base principale, base 0) et comparer avec les résultats obtenus. Si tout correspond, alors la matrice de rotation est juste. Sinon, en tester une autre.
 
@@ -164,8 +174,69 @@ Attention : les paramètres de rotation a, b, et c ne signifient pas toujours la
 Script principal
 ----------------
 
-Le fichier `script_principal.py` contient communique simultanément avec le robot et le profilomètre pour réaliser le scan des pièces.
-Tout 
+Le fichier `script_principal.py` communique simultanément avec le robot et le profilomètre pour réaliser le scan des pièces. Le programme `PROJET_PROFILO` du robot cherche les cubes sur le convoyeur et les passe devant le profilomètre. Le programme du robot doit être lancé de préférence avant le script python.
+
+### Prérequis pour lancer le système
+
+- Un dossier `data` doit être créé
+- Le profilomètre doit être en marche et [correctement configuré](#du-côté-du-profilomètre)
+- Le robot doit être en marche et le [programme `PROJET_PROFILO`](#du-côté-du-programme-du-robot) doit tourner en automatique à une vitesse de 100% (uniquement après avoir été testé en faible vitesse !)
+- Les [bibliothèques python](#installation) nécesaires doivent être installées
+- Les variables `VITESSE_ROBOT` et `FREQUENCE_PROFILO` doivent correspondre respectivement à la vitesse linéaire du robot lors du movement de scan et à la fréquence d'échantillonnage du profilomètre.
+
+### Du côté du script python
+
+Le [module pykuka](#api-kuka) est utilisé pour communiquer par liaison série avec le robot. Des caractères et des nombres peuvent par exemple être échangés pour obtenir la position du robot, ou synchroniser le script python avec le programme robot.
+
+Le [module pykeyence](#api-profilomètre) est utilisé pour communiquer avec le profilomètre sur le réseau.
+
+Le [module transformations](#transformations-3d) sert à appliquer des changements de base sur un nuage de points.
+
+Grâce à ces modules, la structure du script est très simple à comprendre. Le script demande à l'utilisateur de confirmer qu'un cube est présent sur le convoyeur, avant d'envoyer le signal de départ au robot. Cette étape pourrait être remplacé par un capteur de présence relié au robot. Pour chaque face scannée du cube, le robot envoie un signal lors du début du scan, après quoi python fait démarrer une mesure sur le profilomètre. Le robot envoie à nouveau un signal lorsque le scan est terminé, après quoi python arrête la mesure sur le profilomètre, et récupère les profils. Un changement de base est effectué sur le nuage de points renvoyé par le profilomètre pour l'exprimer dans le repère outil, ce qui a pour effet de reconstituer le cube. Voir la partie [calibration](#protocole-de-calibration) pour plus d'informations. Les points sont écrits dans le fichier `data/nuageX.txt` pour traitement ultérieur, et les points avant transformation sont écrits dans `data/nuage_brut.txt` pour pouvoir être utilisés lorsqu'une calibration est nécessaire. Tout ceci est répété en boucle.
+
+Voir le fichier `script_principal.py` et les commentaires présents pour plus d'informations et pour voir le fonctionnement du script en détails.
+
+Si, lors de la visualisation des fichiers `data/nuageX.txt`, le cube n'est pas reconstitué correctement, une [calibration](#protocole-de-calibration) est nécessaire.
+
+### Du côté du programme du robot
+
+Le programme robot est tout à fait standard : les points ont été pris avec le robot et sont en dur dans le programme. Le robot va d'abord chercher un cube, puis le pose et l'attrape dans l'autre sens, puis effectue le scan des différentes faces. Après le scan des faces, le robot attend le signal du python qui détermine si le cube est conforme ou non, avant de le reposer sur le tapis ou le jeter au rebut. Tout ceci est répété en boucle.
+
+Les lignes
+```
+; go to points and take profiles
+PTP P2  Vel= 20 % PDAT19 Tool[3]:pince Base[3]:profilometre
+R1 = PRENDRE_PROFILE(HANDLE, SR_T, SC_T, MR_T, IN_CHAR)
+PTP P6  Vel= 20 % PDAT20 Tool[3]:pince Base[3]:profilometre
+R1 = PRENDRE_PROFILE(HANDLE, SR_T, SC_T, MR_T, IN_CHAR)
+; etc...
+```
+sont responsables du scan du cube : seules deux lignes sont nécessaires à scanner une face. La commande `PTP` qui ammène le robot à sa position de départ, et l'appel à la fonction `PRENDRE_PROFILE` qui envoie l'information de début et de fin de scan à python ainsi que la position initiale du robot, effectue le mouvement linéaire parallèlement au profilomètre, et attend le signal de python indiquant la fin de la réception des données du profilomètre, avant de passer à la face suivante. La vitesse linéaire écrite en dur dans cette fonction doit être reportée dans la variable `VITESSE_ROBOT` du script python, pour permettre le calcul de la distance entre chaque profil.
+
+Pour la synchronisation avec python et la remontée d'informations, les lignes
+```
+; wait GO signal from PC
+WHILE (IN_CHAR <> 71)
+   R1 = RECV_CHAR(HANDLE, SR_T, SC_T, MR_T, IN_CHAR)
+ENDWHILE
+```
+servent à attendre un caractère de python, ici le GO (71), les lignes
+```
+; send DONE
+R1 = SEND_CHAR(HANDLE, SR_T, SC_T, MR_T, 35)
+```
+servent à envoyer un caractère à python, ici le DONE (35), et les lignes
+```
+; send starting position to PC
+R1 = SEND(HANDLE, SR_T, SC_T, MR_T)
+```
+servent à envoyer à python la position du robot, qui est utile pour appliquer les changements de base.
+
+Voir le programme `PROJET_PROFILO` du robot et les commentaires présents pour plus d'informations et pour voir son fonctionnement en détails.
+
+### Du côté du profilomètre
+
+La fréquence d'échantillonnage du profilomètre doit être reportée dans la variable `FREQUENCE_PROFILO` du script python, pour permettre le calcul de la distance entre chaque profil.
 
 
 Protocole de calibration
@@ -191,8 +262,8 @@ Le repère "profilometre" du robot est maintenant à peu près au même endroit 
 - Entrer ces nouvelles valeurs dans la base "profilometre" du robot (Service > Mesurer > Base > Entrée numérique).
 - relancer un scan avec le script principal. Visualiser le cube obtenu : il devrait être reconstitué correctement. Cette procédure peut être à nouveau répétée si ce n'est pas le cas.
 
-![Reconstitution du cube dans l'assistant de calibration](img/calibration_nok.png)
-![Reconstitution du cube dans l'assistant de calibration](img/calibration_ok.png)
+![Reconstitution du cube dans l'assistant de calibration](img/calibration_nok.jpg)
+![Reconstitution du cube dans l'assistant de calibration](img/calibration_ok.jpg)
 
 NB : si le cube est impossible à reconstituer, cela peut vouloir dire que le robot est mal calibré. En effet, les positions de début de scan renvoyées seraient alors fausses, emêchant de faire les bonnes transformations. Une calibration des 6 axes du robot est alors nécessaire.
 
@@ -213,7 +284,11 @@ Annexes
 -------
 
 Le dossier `3d_models` contient les modèles 3D utilisés ou créés durant le projet : les cubes que nous scannons, un cube modifié avec des motifs supplémentaires, les nouveaux mors de la pince, la pièce d'adaptation de la pince sur l'organe terminal du robot.
+
 Le dossier `doc` contient les documentations tierces importantes.
+
+Le dossier `code_robot` contient des sauvegardes des programmes du robot Kuka.
+
 
 Perspectives d'amélioration
 ---------------------------
@@ -225,9 +300,13 @@ Calibration automatique à base de déscente de gradient
 - vibrations lors du mouvement linéaire
 - réglage automatique des paramètres du profilo
 
+
 TODO List
 ---------
 
+intro
+installation des dépendances
+script principal
 ajouter le reste des modèles 3d
 prespectives d'améliorations, problèmes (robot pas précis sur les points renvoyés)
 fusionner les 2 parties profilomètre

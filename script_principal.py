@@ -1,19 +1,17 @@
 import pykuka as kuka
 import pykeyence as profilo
 import transformations as tf
-# import open3d as o3d
 import os
 import random as rd
 
-DEVICE_ID   = 0
-IP_ADDRESS  = "10.2.34.1"
-PORT        = 24691
-PROGRAM     = 8
-vitesse_robot       = 0.0130 # m/s
-frequence_profilo   = 100 # Hz
-yStep = vitesse_robot * 1000 / frequence_profilo # mm
-#base_point_cloud_dans_base_profilo = get_htm(+0, +15, -155, 0, 0, 0)
-base_point_cloud_dans_base_profilo = tf.get_htm(0, 0, 0, 0, 0, 0)
+DEVICE_ID           = 0
+IP_ADDRESS          = "10.2.34.1"
+PORT                = 24691
+PROGRAM             = 8
+VITESSE_ROBOT       = 0.0130 # m/s
+FREQUENCE_PROFILO   = 100 # Hz
+yStep = VITESSE_ROBOT * 1000 / FREQUENCE_PROFILO # mm
+base_point_cloud_dans_base_profilo = tf.get_htm(0, 0, 0, 0, 0, 0) # la calibration étant effectuée correctement, ces deux bases sont confondues, et aucune translation ou rotation n'est à appliquer pour passer de l'une à l'autre.
 
 profilo.Initialize(debug = True)
 kuka.initialize("COM1")
@@ -62,10 +60,10 @@ while True: # Pour chacun des cubes sur le convoyeur
 
     f.close()
     f_brut.close()
+    print(f"Le nuage de points a été écrit dans le fichier data/nuage{compteur_de_cube}.txt")
 
     piece_conforme = compteur_de_cube % 2 == 0 #rd.random() > 0.5 # A récupérer avec script de Robin et Arnaud
     print(f"La pièce est conforme : {piece_conforme}")
-
     if piece_conforme:
         kuka.send_3964R_single_char(kuka.YES)
     else:
@@ -76,7 +74,3 @@ while True: # Pour chacun des cubes sur le convoyeur
 profilo.CommClose(DEVICE_ID)
 profilo.Finalize()
 kuka.finalize()
-
-# file_path = os.path.join(SCRIPT_DIR, FILE_NAME)
-# pcd = o3d.io.read_point_cloud(file_path, format = 'xyz')
-# o3d.visualization.draw_geometries([pcd])

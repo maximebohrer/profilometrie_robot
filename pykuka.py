@@ -1,5 +1,5 @@
 import serial
-s = serial.Serial() # TODO
+s = serial.Serial()
 
 # characters used to communicate
 DLE = 16
