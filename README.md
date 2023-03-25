@@ -1,9 +1,12 @@
 Profilométrie robotisée
 =======================
 
+Présentation
+------------
+
 Projet réalisé dans le cadre d'une UV projet à l'IMT Nord Europe qui consiste à scanner une pièce en 3D avec un robot Kuka et un profilomètre Keyence. Le but étant de détecter de potentielles imperfections sur des pièces imprimées en 3D.
 
-A terme, tout doit passer par python : commande des mouvements du robot, démarrage des mesures et récupérations des données du profilomètre, assemblage des données et reconstitution d'un modèle 3D, détection des défauts, etc. Nous avons donc besoin de plusieurs briques de programme élémentaires, à commencer par des API de communication avec le robot et le profilomètre.
+A terme, tout doit passer par python : synchronisation avec le robot, démarrage des mesures et récupérations des données du profilomètre, assemblage des données et reconstitution d'un modèle 3D, détection des défauts, etc. Nous avons donc besoin de plusieurs briques de programme élémentaires, à commencer par des API de communication avec le robot et le profilomètre.
 
 Table des matières
 ------------------
@@ -40,9 +43,9 @@ NB : A l'origine, il était prévu d'utiliser le programme `PC2KUKA` du robot af
 Utilisation du profilomètre
 ---------------------------
 
-Voici quelques points importants pour comprendre le fonctionnement du profilomètre :
+Voici quelques points importants pour comprendre le fonctionnement du profilomètre et le configurer :
 
-Le logiciel `LJ Navigator` permet de configurer le profilomètre, d'afficher et d'enregistrer des profils.
+Le logiciel `LJ Navigator` permet de configurer le profilomètre, d'afficher et d'enregistrer des profils. 
 Un profil est une ligne prise par le laser du profilomètre. Sur ce modèle de profilomètre, une ligne fait 800 points. Chaque point correspond à une abscisse (x) et à une hauteur (z) mesurée par le profilomètre.
 Un bouton `Démarrer affichage` permet d'afficher ce que le profilomètre voit. Le logiciel affiche alors la même chose que l'écran du profilomètre.
 Un lot de profils (batch) est une suite de plusieurs profils individuels. La pièce se déplace devant le profilomètre lors de la prise des profils, transformant ainsi le nuage de point 2D d'un profil individuel à un nuage de points 3D (une coordonnée y vient donc s'ajouter). Le profilomètre dispose d'un mode batch qui réalise cette fonction.
@@ -51,7 +54,7 @@ Le profilomètre a deux modes principaux de fonctionnement :
 - le mode normal qui permet de prendre des profils individuellements (voir la fonction `GetProfileAdvance` de la partie [API Profilomètre](#api-profilomètre)).
 - le mode batch qui permet de faire des lots de profils. Ce mode nécéssite de choisir une fréquence d'échantillonage (fréquence à laquelle les différents profils du lot sont pris), un pas (distance entre les profils, qui dépend de la fréquence d'échantillonage et de la vitesse de la pièce sous le profilomètre) et un nombre maximal de profils à prendre. En mode batch, un enregistrement doit être déclenché (bouton `démarrer lot`, fonction `StartMeasure`), puis arrêté manuellement (bouton `arrêter lot`, fonction `StartMeasure`) ou automatiqument (lorsque le nombre de profils demandé est atteint). Attention, en mode batch, l'affichage n'est actif que pendant l'enregistrement, que ce soit sur l'écran du profilomètre ou sur le logiciel. Pendant l'enregistrement, des profils sont pris en lot, puis peuvent être enregistrés (fonction `GetBatchProfileAdvance`). Plusieurs modes d'acquisition sont possibles pour les lots :
     - le mode continu, qui prend des profils à intervalles réguliers avec une fréquence donnée, mais qui nécéssite d'avoir une vitesse de la pièce parfaitement connue pour la reconstituer proprement en 3D. C'est ce mode qui sera utilisé avec le robot.
-    - le mode trigger, qui permet de déclencher la prise de chaque profil manuellement (fonction `Trigger`).
+    - le mode externe, qui permet de déclencher la prise de chaque profil manuellement (fonction `Trigger`).
     - le mode codeur, qui permet de déclencher la prise de chaque prodil sur les changements du codeur incrémental externe qui peut être branché au profilomètre. Ceci est utile si c'est un axe linéaire muni d'un codeur qui fait bouger la pièce devant le profilomètre.
 
 Tous ces paramètres (mode batch, fréquence, pas, nombre de profils) peuvent être régler grâce au bouton `réglage direct`.
@@ -68,10 +71,10 @@ Pour configurer le profilomètre Keyence LJ-V7080, on utilise le logiciel `LJ Na
 - Dans la fenêtre `Réglage rapide`, vérifiez que les paramètres de base sont corrects (par exemple la vitesse de déplacement du profilomètre). Ces paramètres peuvent être modifiés en cliquant sur le bouton `Réglage direct`.
 
 Dans la fenêtre `Réglage déclench.`, réglez les paramètres de mesure du profilomètre. Les paramètres sont les suivants :
-- `Mode de déclenchement :` Choix du mode de mesure (Voir partie [Utilisation du profilomètre](#utilisation-du-profilomètre))
-- `Fréquence d'échantillonnage :` c'est la fréquence à laquelle les mesures sont effectuées. Plus cette fréquence est élevée, plus la mesure sera précise mais plus le temps de mesure sera long. La fréquence d'échantillonnage doit être choisie en fonction de la précision désirée et du temps de mesure acceptable.
-- `Pas de mesure :` Cela correspond à la distance réelle entre deux points de mesure consécutifs, utilisée pour mettre à l'échelle le nuage de points 3D obtenu. Ce paramètre doit être déterminé avec précision pour garantir la précision de la reconstruction 3D de la pièce.
-- `Nombre de points de mesure :` c'est le nombre de points de mesure qui seront pris. Plus ce nombre est élevé, plus la mesure sera précise mais plus le temps de mesure sera long. Le nombre de points de mesure doit être choisi en fonction de la précision désirée et du temps de mesure acceptable.
+- `Mode de déclenchement` : Choix du mode de mesure (Voir partie [Utilisation du profilomètre](#utilisation-du-profilomètre))
+- `Fréquence d'échantillonnage` : c'est la fréquence à laquelle les mesures sont effectuées. Plus cette fréquence est élevée, plus la mesure sera précise mais plus le temps de mesure sera long. La fréquence d'échantillonnage doit être choisie en fonction de la précision désirée et du temps de mesure acceptable.
+- `Pas de mesure` : Cela correspond à la distance réelle entre deux points de mesure consécutifs, utilisée pour mettre à l'échelle le nuage de points 3D obtenu. Ce paramètre doit être déterminé avec précision pour garantir la précision de la reconstruction 3D de la pièce.
+- `Nombre de points de mesure` : c'est le nombre de points de mesure qui seront pris. Plus ce nombre est élevé, plus la mesure sera précise mais plus le temps de mesure sera long. Le nombre de points de mesure doit être choisi en fonction de la précision désirée et du temps de mesure acceptable. Dans le cas de notre projet il faut le prendre plus grand que nécessaire, car la mesure sera arrêtée manuellement dans tous les cas avant d'atteindre le nombre de points de mesure.
 
 Dans la fenêtre `Réglage image.`, réglez les paramètres d'image du profilomètre. Les paramètres sont les suivants :
 - `Mode de réflexion` : Permet d'ajuster les paramètres du laser du profilomètre de sorte à mieux mesurer les refiefs. 
@@ -84,7 +87,7 @@ Dans la fenêtre `Mesure`, cliquez sur le bouton `Démarrer affichage` pour affi
 
 - Cliquez sur le bouton `Démarrer lot` pour commencer la mesure en mode lot. Les mesures seront prises en continu jusqu'à ce que le nombre de points de mesure soit atteint ou que l'utilisateur arrête la mesure manuellement en cliquant sur le bouton `Arrêter lot`.
 
-- Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`
+- Une fois la mesure terminée, les données peuvent être enregistrées en cliquant sur le bouton `Enregistrer`. Les données peuvent être enregistrées dans différents formats, notamment `CSV, TXT, DAT, BMP, JPEG, TIFF`. Ce processus est complètement automatisé dans le [script principal](#script-principal) grâce à l'[API du profilomètre](#api-profilomètre).
 
 
 Visualisation & modélisation 3D 
@@ -108,13 +111,13 @@ Le script principal génère un fichier par cube scanné. Ces nuages de points p
 Dans `Meshlab`, ouvrez le nuage de points traité enregistré précédemment au format `.txt`. Pour cela, allez dans le menu `File` et sélectionnez `Open...`.
 
 - Calcul des normales :
-Les normales sont des vecteurs perpendiculaires à chaque point du nuage de points. Elles sont nécessaires pour la méthode de `ball pivoting`. Pour calculer les normales, allez dans le menu `Filters` &gt; `Compute Normals for Point Sets`. Une fenêtre apparaîtra vous permettant de sélectionner les options de calcul. Choisissez `Weighted Average` pour la méthode de calcul des normales et `10` pour le rayon de recherche. Cliquez ensuite sur `Apply`.
+Les normales sont des vecteurs perpendiculaires à chaque point du nuage de points. Elles sont nécessaires pour la méthode de `ball pivoting`. Pour calculer les normales, allez dans le menu `Filters` > `Compute Normals for Point Sets`. Une fenêtre apparaîtra vous permettant de sélectionner les options de calcul. Choisissez `Weighted Average` pour la méthode de calcul des normales et `10` pour le rayon de recherche. Cliquez ensuite sur `Apply`.
 
 - Réduction du bruit :
-Pour améliorer la qualité de la modélisation, vous pouvez réduire le bruit du nuage de points en allant dans le menu `Filters` &gt; `Cleaning and Repairing`. Choisissez l'option `Cleaning: Planar Faces` et sélectionnez une valeur de seuil adaptée à votre nuage de points. Cliquez ensuite sur `Apply`.
+Pour améliorer la qualité de la modélisation, vous pouvez réduire le bruit du nuage de points en allant dans le menu `Filters` > `Cleaning and Repairing`. Choisissez l'option `Cleaning: Planar Faces` et sélectionnez une valeur de seuil adaptée à votre nuage de points. Cliquez ensuite sur `Apply`.
 
 - `Ball Pivoting` :
-La méthode de `ball pivoting` permet de reconstituer une surface à partir d'un nuage de points en reliant les points qui sont à proximité les uns des autres. Pour utiliser cette méthode, allez dans le menu `Filters` &gt; `Remeshing, Simplification and Reconstruction` &gt; `Ball Pivoting`. Sélectionnez les options suivantes :
+La méthode de `ball pivoting` permet de reconstituer une surface à partir d'un nuage de points en reliant les points qui sont à proximité les uns des autres. Pour utiliser cette méthode, allez dans le menu `Filters` > `Remeshing, Simplification and Reconstruction` > `Ball Pivoting`. Sélectionnez les options suivantes :
 `Max Radius` : une valeur adaptée à votre nuage de points
 `Min Angle` : une valeur adaptée à votre nuage de points
 `Max Distance` : une valeur adaptée à votre nuage de points
@@ -122,7 +125,7 @@ La méthode de `ball pivoting` permet de reconstituer une surface à partir d'un
 Cliquez ensuite sur `Apply`.
 
 - Remplissage des trous :
-Si le nuage de points contient des trous, vous pouvez les remplir en utilisant la méthode de `ball pivoting`. Pour cela, allez dans le menu `Filters` &gt; `Remeshing, Simplification and Reconstruction` &gt; `Close Holes`. Sélectionnez les options suivantes :
+Si le nuage de points contient des trous, vous pouvez les remplir en utilisant la méthode de `ball pivoting`. Pour cela, allez dans le menu `Filters` > `Remeshing, Simplification and Reconstruction` > `Close Holes`. Sélectionnez les options suivantes :
 `Max Hole Size` : une valeur adaptée à votre nuage de points
 `Self Intersection` : cochez la case `Enable` pour éviter les intersections entre les faces.
 `Use Vertices` : cochez la case `Enable` pour créer de nouveaux points dans les trous.
@@ -130,7 +133,7 @@ Si le nuage de points contient des trous, vous pouvez les remplir en utilisant l
 Cliquez ensuite sur `Apply`.
 
 Exportation du modèle :
-Une fois la surface du cube reconstituée et les trous remplis, vous pouvez exporter le modèle en allant dans le menu `File` &gt; `Export Mesh As...`. Choisissez le format d'exportation souhaité (par exemple `.obj`) et enregistrez le fichier.
+Une fois la surface du cube reconstituée et les trous remplis, vous pouvez exporter le modèle en allant dans le menu `File` > `Export Mesh As...`. Choisissez le format d'exportation souhaité (par exemple `.obj`) et enregistrez le fichier.
 En utilisant cette méthode de `ball pivoting`, vous pouvez facilement modéliser les faces d'un cube à partir d'un nuage de points dans `Meshlab`.
 
 
@@ -149,7 +152,7 @@ import pykeyence as profilo
 - La fonction `GetBatchProfileAdvance(deviceID, nbProfiles, yStep)` permet de récupérer les profils pris pendant une mesure en mode batch. `nbProfiles` permet de préciser le nombre maximal de profils à récupérer. Le nombre de profils effectivements récupérés peut être inférieur. `yStep` est la distance entre deux profils successifs (la pièce se déplace dans la direction y). Elle doit être calculée en fonction de la fréquence de prise des profils du profilomètre et la vitesse de déplacement de la pièce devant le profilomètre. Cette fonction est prévue pour être utilisée uniquement en mode continu. Elle peut être adaptée si besoin pour fonctionner différemment.
 - Les fonctions `CommClose(deviceID)` et `Finalize()` doivent être appelées à la fin du script. Elles servent à fermer la communication avec le profilomètre et à désinitialiser le DLL.
 
-D'autres fonctions du profilomètre pourraient être implémentées dans ce fichier en fonction des besoins. Toutes les informations nécessaires à ce type de développement sont disponibles dans la documentation de la librairie du profilomètre `doc/LJ-V7000 Communication Library.pdf`.
+D'autres fonctions du profilomètre pourraient être implémentées dans ce fichier en fonction des besoins, notamment tout ce qui concerne la communication haute vitesse. Toutes les informations nécessaires à ce type de développement sont disponibles dans la documentation de la librairie du profilomètre `doc/LJ-V7000 Communication Library.pdf`.
 
 Transformations 3D
 ------------------
@@ -211,7 +214,9 @@ PTP P6  Vel= 20 % PDAT20 Tool[3]:pince Base[3]:profilometre
 R1 = PRENDRE_PROFILE(HANDLE, SR_T, SC_T, MR_T, IN_CHAR)
 ; etc...
 ```
-sont responsables du scan du cube : seules deux lignes sont nécessaires à scanner une face. La commande `PTP` qui ammène le robot à sa position de départ, et l'appel à la fonction `PRENDRE_PROFILE` qui envoie l'information de début et de fin de scan à python ainsi que la position initiale du robot, effectue le mouvement linéaire parallèlement au profilomètre, et attend le signal de python indiquant la fin de la réception des données du profilomètre, avant de passer à la face suivante. La vitesse linéaire écrite en dur dans cette fonction doit être reportée dans la variable `VITESSE_ROBOT` du script python, pour permettre le calcul de la distance entre chaque profil.
+sont responsables du scan du cube : seules deux lignes sont nécessaires à scanner une face :
+- La commande `PTP` qui ammène le robot à sa position de départ. Attention : Le mouvement doit obligatoirement être effectué avec l'outil `pince` et dans la base `profilomètre`, afin que dans la suite, la position envoyée par le robot soit celle de la `pince` dans le repère `profilometre`.
+- l'appel à la fonction `PRENDRE_PROFILE` qui envoie l'information de début et de fin de scan à python ainsi que la position initiale du robot, effectue le mouvement linéaire parallèlement au profilomètre, et attend le signal de python indiquant la fin de la réception des données du profilomètre, avant de passer à la face suivante. La vitesse linéaire écrite en dur dans cette fonction doit être reportée dans la variable `VITESSE_ROBOT` du script python, pour permettre le calcul de la distance entre chaque profil.
 
 Pour la synchronisation avec python et la remontée d'informations, les lignes
 ```
@@ -236,6 +241,7 @@ Voir le programme `PROJET_PROFILO` du robot et les commentaires présents pour p
 
 ### Du côté du profilomètre
 
+Le profilomètre doit être en mode batch et en mode continu.
 La fréquence d'échantillonnage du profilomètre doit être reportée dans la variable `FREQUENCE_PROFILO` du script python, pour permettre le calcul de la distance entre chaque profil.
 
 
@@ -277,7 +283,7 @@ Protocole en cas de changement de robot
 
 Pour continuer d'utiliser le projet avec un robot différent, deux étapes sont nécéssaires :
 - S'assurer que la matrice de rotation est calculée correctement, ou modifier cette dernière. Pour cela, suivre le protocole décrit dans la partie [Transformations 3D](#transformations-3d).
-- Effectuer une calibration du système en suivant le protocole de la partie [Protocole de calibration](#protocole-de-calibration)
+- Effectuer une calibration du système en suivant le protocole de la partie [Protocole de calibration](#protocole-de-calibration).
 
 
 Annexes
@@ -290,8 +296,8 @@ Le dossier `doc` contient les documentations tierces importantes.
 Le dossier `code_robot` contient des sauvegardes des programmes du robot Kuka.
 
 
-Perspectives d'amélioration
----------------------------
+Limitations connues et perspectives d'amélioration
+--------------------------------------------------
 
 Calibration automatique à base de déscente de gradient
 - Système de calibration automatique (cf "base_point_cloud_dans_base_profilo = get_htm(0, 0, -170, 0, 0, 0)") afin de déterminer les 6 paramètres pour que les faces concordent parfaitement
@@ -311,3 +317,4 @@ ajouter le reste des modèles 3d
 prespectives d'améliorations, problèmes (robot pas précis sur les points renvoyés)
 fusionner les 2 parties profilomètre
 partie script principal
+ENLEVER UN PARAMETRE DE TOUTES LES FONCTIONS GETBATCHPROFILEADVANCE

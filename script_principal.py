@@ -39,7 +39,7 @@ while True: # Pour chacun des cubes sur le convoyeur
         done = kuka.read_3964R_single_char()
         profilo.StopMeasure(DEVICE_ID)
 
-        point_cloud = profilo.GetBatchProfileAdvance(DEVICE_ID, 100, 1000, -yStep)
+        point_cloud = profilo.GetBatchProfileAdvance(DEVICE_ID, 1000, -yStep) # le signe de yStep dépend du sens du déplacement devant le profilomètre
 
         base_outil_dans_base_profilo = tf.get_htm(pose.x, pose.y, pose.z, pose.a, pose.b, pose.c)
         base_profilo_dans_base_outil = base_outil_dans_base_profilo.I
