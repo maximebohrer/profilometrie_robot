@@ -201,11 +201,12 @@ Le fichier `script_principal.py` communique simultanément avec le robot et le p
 ### Prérequis et lancement
 
 - Un dossier `data` doit être créé
-- Le profilomètre doit être en marche et [correctement configuré](#du-côté-du-profilomètre)
-- Un câble série doit relier le robot et l'ordinateur sur lequel le script python sera exécuté
+- Le profilomètre doit être en marche, [correctement configuré](#du-côté-du-profilomètre), et connecté au même réseau que le PC.
+- L'adresse IP et le port renseignés dans le script python pour se connecter au profilomètre doivent être corrects. Ils peuvent être trouvés dans les réglages du profilomètre.
+- Un câble série doit relier le robot et l'ordinateur sur lequel le script python sera exécuté.
 - Le port série spécifié lors de l'initialisation du module `pykuka` doit être le bon (généralement `COM1` si le port série physique de l'ordinateur est utilisé)
-- Le robot doit être en marche et le [programme `PROJET_PROFILO`](#du-côté-du-programme-du-robot) doit tourner en automatique à une vitesse de 100% (uniquement après avoir été testé en faible vitesse !)
-- Les [bibliothèques python](#installation) nécesaires doivent être installées
+- Le robot doit être en marche et le [programme `PROJET_PROFILO`](#du-côté-du-programme-du-robot) doit tourner en automatique à une vitesse de 100% (uniquement après avoir été testé en faible vitesse !).
+- Les [bibliothèques python](#installation) nécesaires doivent être installées.
 - Les variables `VITESSE_ROBOT` et `FREQUENCE_PROFILO` doivent correspondre respectivement à la vitesse linéaire du robot lors du movement de scan et à la fréquence d'échantillonnage du profilomètre.
 
 Vous pouvez ensuite lancer le script python
@@ -267,7 +268,7 @@ Voir le programme `PROJET_PROFILO` du robot et les commentaires présents pour p
 
 ### Du côté du profilomètre
 
-Le profilomètre doit être en mode batch et en mode continu. Les réglages que nous avons utilisé sont une fréquence de 100 Hz (pour une vitesse de 0.0130 m/s du robot) et 1000 points. Voir la partur [Utilisation du profilomètre](#utilisation-du-profilomètre) pour effectuer ces réglages.
+Le profilomètre doit être en mode batch et en mode continu. Les réglages que nous avons utilisé sont une fréquence de 100 Hz (pour une vitesse de 0.0130 m/s du robot) et 1000 points. Voir la partie [Utilisation du profilomètre](#utilisation-du-profilomètre) pour effectuer ces réglages.
 La fréquence d'échantillonnage du profilomètre doit être reportée dans la variable `FREQUENCE_PROFILO` du script python, pour permettre le calcul de la distance entre chaque profil.
 
 Protocole de calibration
@@ -279,7 +280,7 @@ Le repère du nuage de points renvoyé par le profilomètre est représenté dan
 
 ![Base du nuage de points](img/base_profilo.jpg)
 
-Le but est donc de placer le repère `profilometre` du robot au point (position et orientation) indiqué sur l'image. Plusieurs méthodes sont possibles :
+Le but est donc de placer le repère `profilometre` du robot au point (position et orientation) indiqué sur l'image (si la acalibration est déjà presque bonne ou que le repère est déjà a peu près juste, passez directement à l'étape suivante). Plusieurs méthodes sont possibles :
 1. Utiliser la méthode des 3 points pour définir une base (Service > Mesurer > Base > Méthode des 3 points). Le robot demande alors de se placer à l'origine, puis sur l'axe x, puis sur l'axe y, et le repère est établi.
 2. Se rendre à l'origine du repère de l'image, relever la position du robot et l'entrer manuellement dans dans les paramètres x, y, z de la base (Service > Mesurer > Base > Entrée numérique). Si vous placez le profilomètre dans la même configuration que nous, le repère du nuage de points est orienté de la même façon que le repère du robot. Les paramètres a, b, c peuvent donc être mis à 0. Si le profilomètre est mis dans une autre orientation, ces paramètres devront être adaptés.
 
@@ -295,6 +296,8 @@ Le repère `profilometre` du robot est maintenant à peu près au même endroit 
 
 ![Reconstitution du cube dans l'assistant de calibration](img/calibration_nok.jpg)
 ![Reconstitution du cube dans l'assistant de calibration](img/calibration_ok.jpg)
+
+NB : n'hésitez pas à modifier le code pour réduire le nombre de points affichés, ou pour réduire le nombre de faces affichées.
 
 NB : si le cube est impossible à reconstituer, cela peut vouloir dire que le robot est mal calibré. En effet, les positions de début de scan renvoyées seraient alors fausses, emêchant de faire les bonnes transformations. Une calibration des 6 axes du robot est alors nécessaire.
 
@@ -339,8 +342,11 @@ Ce problème pourrait aussi être contourné en introduisant une transformation 
 
 Pour l'instant, le profilomètre doit être configuré à la main avant de lancer le script. Le DLL du profilomètre met cependant à disposition des fonctions permettant de changer cette configuration. Les réglages peuvent donc être effectués depuis python : voir par exemple la fonction `SetSetting_SamplingFrequency` du fichier `pykeyence.py`. D'autres peuvent être implémentées en suivant la documentation `doc/LJ-V7000 Communication Library.pdf`. Il peut être inréressant de les intégrer au script principal, de manière à pouvoir lancer le projet même si le profilomètre n'est pas bien configuré.
 
-TODO List
----------
+### Gestion des erreurs
 
-fusionner les 2 parties profilomètre
-ENLEVER UN PARAMETRE DE TOUTES LES FONCTIONS GETBATCHPROFILEADVANCE
+La gestion des erreurs pourrait être améliorée. Par exemple, dans l'API du profilomètre, les fonctions renvoient 0 lorsqu'il n'y a pas d'erreur. On pourrait ajouter les lignes
+```python
+if res != 0:
+    raise Exception(f"Error: the function returned {hex(res)}")
+```
+dans chaque fonctions, afin de pouvoir détecter les erreurs plus facilement depuis le script principal.
