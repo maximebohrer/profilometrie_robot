@@ -1,6 +1,8 @@
 Profilométrie robotisée
 =======================
 
+![Photo Titre](img/photo_ensemble_kuka.jpg)
+
 Présentation
 ------------
 
