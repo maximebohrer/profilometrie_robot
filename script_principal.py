@@ -67,7 +67,7 @@ while True: # Pour chacun des cubes sur le convoyeur
     f_brut.close()
     print(f"Le nuage de points a été écrit dans le fichier data/nuage{compteur_de_cube}.txt")
 
-    piece_conforme = compteur_de_cube % 2 == 0 #rd.random() > 0.5 # A récupérer avec script de Robin et Arnaud
+    piece_conforme = compteur_de_cube % 2 == 0
     print(f"La pièce est conforme : {piece_conforme}")
     if piece_conforme:
         kuka.send_3964R_single_char(kuka.YES)

@@ -323,6 +323,8 @@ Le dossier `doc` contient les documentations tierces importantes.
 
 Le dossier `code_robot` contient des sauvegardes des programmes du robot Kuka.
 
+Le dossier `tp` contient un sujet de TP réalisable par les étudiants dans le cadre de ce projet.
+
 Limitations connues et perspectives d'amélioration
 --------------------------------------------------
 
