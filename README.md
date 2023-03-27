@@ -210,6 +210,7 @@ Le fichier `script_principal.py` communique simultanément avec le robot et le p
 - Le robot doit être en marche et le [programme `PROJET_PROFILO`](#du-côté-du-programme-du-robot) doit tourner en automatique à une vitesse de 100% (uniquement après avoir été testé en faible vitesse !).
 - Les [bibliothèques python](#installation) nécesaires doivent être installées.
 - Les variables `VITESSE_ROBOT` et `FREQUENCE_PROFILO` doivent correspondre respectivement à la vitesse linéaire du robot lors du movement de scan et à la fréquence d'échantillonnage du profilomètre.
+- Le convoyeur doit être en marche.
 
 Vous pouvez ensuite lancer le script python
 ```bash
