@@ -1,3 +1,12 @@
+"""
++------------------------------------------------------------------------+
+|                         IMT Nord Europe - 2023                         |
+|   BOHRER Maxime, LENTREBECQ Maxime, RUSHENAS Arnaud, TRAMAILLE Robin   |
++------------------------------------------------------------------------+
+
+Traitement des faces : calcul des dimensions du cube, de la rugosité des faces, etc.
+"""
+
 import open3d as o3d
 import numpy as np
 import csv
@@ -51,7 +60,7 @@ def resolve_equations(sides, user_dimensions):
 
 #CALCUL DES COINS ET SEPARATION DES FACES
 # Load point cloud
-file_path = 'Data/Raw/nuage0.txt'
+file_path = 'data/nuage0.txt'
 with open(file_path, 'r') as f:
     lines = f.readlines()
 filtered_lines = []
@@ -72,7 +81,7 @@ pcd_filtered, _ = pcd.remove_statistical_outlier(nb_neighbors_values, std_ratio_
 
 # Save point cloud as text file
 points = np.asarray(pcd_filtered.points)
-filename = f"Data/Debug/nuage_filtered_outliers_removed_{nb_neighbors_values}_{std_ratio_values}.txt"
+filename = f"data/nuage_filtered_outliers_removed_{nb_neighbors_values}_{std_ratio_values}.txt"
 np.savetxt(filename, points, delimiter='\t', fmt='%.8f')
 
 
